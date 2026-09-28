@@ -67,6 +67,7 @@
   ],
   "users": [
     {
+      "id": "a624d063-bd1e-442d-b52d-8de2df356c13",
       "username": "ana@oneleft.dev",
       "email": "ana@oneleft.dev",
       "firstName": "Ana",
@@ -85,6 +86,7 @@
       ]
     },
     {
+      "id": "9e51a057-ce42-4177-b020-ac2fc7ec6ffa",
       "username": "admin@oneleft.dev",
       "email": "admin@oneleft.dev",
       "firstName": "Admin",

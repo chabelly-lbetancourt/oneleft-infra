@@ -144,7 +144,8 @@ services:
       KEYCLOAK_JWKS: http://keycloak:8180/realms/oneleft/protocol/openid-connect/certs
       USERS_URL: http://users:8081
       PLANS_URL: http://plans:8082
-      SPRING_PROFILES_ACTIVE: observability
+      # seed: demo profiles and plans (dev only; pre enables it explicitly, production never)
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-observability,seed}
       ONELEFT_LOKI_URL: http://loki:3100/loki/api/v1/push
     ports:
       - "8080:8080"
