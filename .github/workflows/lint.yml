@@ -1,0 +1,63 @@
+name: lint
+
+on:
+  push:
+    # dev, pre and main only receive merged pull requests, already validated
+    branches-ignore: [main, pre, dev]
+  pull_request:
+    branches: [dev, pre, main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  branches-and-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          re='^(dev|pre|issue#[0-9]+|hotfix/[a-z0-9._-]+)$'
+          if [[ ! "$BRANCH" =~ $re ]]; then
+            echo "::error::Invalid branch: '$BRANCH'. Use issue#<number> or hotfix/<description> (dev and pre are promotion branches)."
+            exit 1
+          fi
+          echo "Valid branch: $BRANCH"
+
+      # Environments: dev (integration) -> pre (staging) -> main (production). Hotfixes go to main and back to pre and dev.
+      - name: Validate promotion path
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD: ${{ github.head_ref }}
+          BASE: ${{ github.base_ref }}
+        run: |
+          case "$BASE <- $HEAD" in
+            "dev <- issue#"* | "dev <- hotfix/"* | "pre <- dev" | "pre <- hotfix/"* | "main <- pre" | "main <- hotfix/"*)
+              echo "Valid promotion: $BASE <- $HEAD" ;;
+            *)
+              echo "::error::'$HEAD' cannot be merged into '$BASE'. Flow: issue#N -> dev -> pre -> main; hotfix/* -> main, pre and dev."
+              exit 1 ;;
+          esac
+
+      - name: Validate commits (Conventional Commits referencing the issue)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            gh api "repos/$REPO/pulls/$PR/commits" --paginate -q '.[].commit.message | split("\n")[0]' > commits.txt
+          else
+            jq -r '.commits[].message | split("\n")[0]' "$GITHUB_EVENT_PATH" > commits.txt
+          fi
+          re='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: .+ \(?#[0-9]+\)?$'
+          invalid=$(grep -Ev '^Merge ' commits.txt | grep -Ev "$re" || true)
+          if [ -n "$invalid" ]; then
+            echo "::error::Commits not matching '<type>(<scope>): <description> #<issue>':"
+            echo "$invalid"
+            exit 1
+          fi
+          echo "Valid commits:"; cat commits.txt

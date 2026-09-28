@@ -1,0 +1,32 @@
+name: Historia de usuario
+description: Funcionalidad desde el punto de vista del usuario (HU-XXX)
+title: "HU-XXX · "
+labels: ["historia"]
+body:
+  - type: input
+    id: como
+    attributes:
+      label: Como
+      placeholder: usuario, organizador, administrador...
+    validations:
+      required: true
+  - type: input
+    id: quiero
+    attributes:
+      label: Quiero
+    validations:
+      required: true
+  - type: input
+    id: para
+    attributes:
+      label: Para
+    validations:
+      required: true
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Criterios de aceptación
+      value: |
+        - [ ]
+    validations:
+      required: true
