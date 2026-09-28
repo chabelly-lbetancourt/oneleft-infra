@@ -1,0 +1,8 @@
+.env
+*.env
+kubeconfig*
+*.pem
+.terraform/
+*.tfstate*
+.idea/
+.DS_Store
