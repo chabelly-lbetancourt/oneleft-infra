@@ -13,6 +13,12 @@ docker compose ps         # todos los servicios deben aparecer como (healthy)
 
 Para pararlo: `docker compose down` (conserva los datos) o `docker compose down -v` (borra también los volúmenes).
 
+Con observabilidad (Prometheus, Loki y Grafana):
+
+```bash
+docker compose --profile observability up -d
+```
+
 ## Servicios
 
 | Servicio | Imagen | Puerto | Uso en OneLeft |
@@ -25,6 +31,24 @@ Para pararlo: `docker compose down` (conserva los datos) o `docker compose down 
 Se usa `imresamu/postgis` porque la imagen oficial `postgis/postgis` solo se publica para `amd64`, y el
 entorno de desarrollo es un Mac con Apple Silicon (`arm64`). Es la variante multiarquitectura que mantiene uno
 de los responsables de la imagen oficial.
+
+## Observabilidad (perfil `observability`)
+
+| Servicio | Imagen | Puerto | Uso |
+|---|---|---|---|
+| Prometheus | `prom/prometheus:v3.15.0` | 9090 | Métricas de los microservicios (`/actuator/prometheus`), Keycloak y RabbitMQ |
+| Loki | `grafana/loki:3.7.8` | 3100 | Logs de los microservicios |
+| Grafana | `grafana/grafana:13.2.2` | 3000 | Dashboards; acceso de lectura sin login en local |
+
+- Los microservicios se ejecutan en el equipo (IntelliJ o `java -jar`), así que Prometheus los alcanza en
+  `host.docker.internal:8080-8082` ([`observability/prometheus.yml`](observability/prometheus.yml)).
+- Para enviar logs a Loki, los servicios se arrancan con el perfil `observability`
+  (`SPRING_PROFILES_ACTIVE=observability`).
+- Las fuentes de datos y el dashboard **OneLeft · Microservicios** se aprovisionan automáticamente desde
+  [`observability/grafana`](observability/grafana): servicios activos, peticiones por segundo, latencia p95,
+  porcentaje de errores 5xx, peticiones y latencia por servicio, respuestas por código HTTP, memoria de la JVM y logs.
+
+Grafana: <http://localhost:3000> · Prometheus: <http://localhost:9090/targets>
 
 ## Bases de datos
 
