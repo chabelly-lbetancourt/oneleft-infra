@@ -52,8 +52,11 @@ docker compose --profile backend --profile observability up -d --build
   contenedores descarguen sus claves por la red interna (`KEYCLOAK_JWKS=http://keycloak:8180/...`).
 - **Realm ya creado:** el realm solo se importa en el primer arranque. Para aplicar cambios del cliente
   `oneleft-web` (por ejemplo, la URI de redirección de Swagger UI) a un Keycloak ya en marcha:
-  `keycloak/sincronizar-cliente-web.sh`.
+  `keycloak/sync-web-client.sh`.
 - Los contenedores envían sus logs a Loki y Prometheus los alcanza en los mismos puertos publicados.
+- **Migraciones reescritas:** si Flyway no arranca porque una migración ya aplicada ha cambiado (por ejemplo, al
+  renombrarlas al inglés en backend#33), vacía la base de datos del servicio y reinícialo:
+  `postgres/reset-service-database.sh plans` (o `users`). Solo en local: borra los datos de ese servicio.
 
 ## Observabilidad (perfil `observability`)
 
