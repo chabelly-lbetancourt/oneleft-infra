@@ -54,6 +54,10 @@ docker compose --profile backend --profile observability up -d --build
   `oneleft-web` (por ejemplo, la URI de redirección de Swagger UI) a un Keycloak ya en marcha:
   `keycloak/sync-web-client.sh`.
 - Los contenedores envían sus logs a Loki y Prometheus los alcanza en los mismos puertos publicados.
+- **Datos de demostración (seed):** los servicios arrancan con los perfiles `observability,seed`: perfiles de
+  `ana@oneleft.dev` y `admin@oneleft.dev` y 8 planes alrededor de Vallecas que empiezan en las próximas horas. Para
+  arrancar sin datos, usa `SPRING_PROFILES_ACTIVE=observability docker compose --profile backend up -d`. Los usuarios
+  de prueba tienen ids fijos en el realm para que el seed los enlace.
 - **Migraciones reescritas:** si Flyway no arranca porque una migración ya aplicada ha cambiado (por ejemplo, al
   renombrarlas al inglés en backend#33), vacía la base de datos del servicio y reinícialo:
   `postgres/reset-service-database.sh plans` (o `users`). Solo en local: borra los datos de ese servicio.
