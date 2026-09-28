@@ -1,0 +1,105 @@
+{
+  "realm": "oneleft",
+  "displayName": "OneLeft",
+  "enabled": true,
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "loginWithEmailAllowed": true,
+  "resetPasswordAllowed": true,
+  "rememberMe": true,
+  "sslRequired": "external",
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "es",
+    "en"
+  ],
+  "defaultLocale": "es",
+  "accessTokenLifespan": 900,
+  "roles": {
+    "realm": [
+      {
+        "name": "user",
+        "description": "Usuario de OneLeft"
+      },
+      {
+        "name": "admin",
+        "description": "Administrador y moderador"
+      }
+    ]
+  },
+  "defaultRoles": [
+    "user"
+  ],
+  "clients": [
+    {
+      "clientId": "oneleft-web",
+      "name": "OneLeft · app web y Android",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/*##https://localhost/*##oneleft://*"
+      },
+      "redirectUris": [
+        "http://localhost:4200/*",
+        "https://localhost/*",
+        "oneleft://*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200",
+        "https://localhost"
+      ]
+    },
+    {
+      "clientId": "oneleft-api",
+      "name": "OneLeft · API (pruebas de integración)",
+      "publicClient": false,
+      "secret": "oneleft-api-dev-secret",
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect"
+    }
+  ],
+  "users": [
+    {
+      "username": "ana@oneleft.dev",
+      "email": "ana@oneleft.dev",
+      "firstName": "Ana",
+      "lastName": "Pruebas",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ana-dev",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "admin@oneleft.dev",
+      "email": "admin@oneleft.dev",
+      "firstName": "Admin",
+      "lastName": "Pruebas",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin-dev",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user",
+        "admin"
+      ]
+    }
+  ]
+}
