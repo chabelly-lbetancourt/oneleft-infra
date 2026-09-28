@@ -1,0 +1,47 @@
+name: lint
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  ramas-y-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar nombre de rama
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          re='^(dev|issue#[0-9]+|hotfix/[a-z0-9._-]+)$'
+          if [[ ! "$BRANCH" =~ $re ]]; then
+            echo "::error::Rama no válida: '$BRANCH'. Usa dev, issue#<número> o hotfix/<descripción>."
+            exit 1
+          fi
+          echo "Rama válida: $BRANCH"
+
+      - name: Validar commits (Conventional Commits con referencia al issue)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            gh api "repos/$REPO/pulls/$PR/commits" --paginate -q '.[].commit.message | split("\n")[0]' > commits.txt
+          else
+            jq -r '.commits[].message | split("\n")[0]' "$GITHUB_EVENT_PATH" > commits.txt
+          fi
+          re='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: .+ \(?#[0-9]+\)?$'
+          invalid=$(grep -Ev '^Merge ' commits.txt | grep -Ev "$re" || true)
+          if [ -n "$invalid" ]; then
+            echo "::error::Commits que no cumplen el formato '<tipo>(<ámbito>): <descripción> #<issue>':"
+            echo "$invalid"
+            exit 1
+          fi
+          echo "Commits válidos:"; cat commits.txt
