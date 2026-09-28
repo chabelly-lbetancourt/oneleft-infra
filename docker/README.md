@@ -32,6 +32,29 @@ Se usa `imresamu/postgis` porque la imagen oficial `postgis/postgis` solo se pub
 entorno de desarrollo es un Mac con Apple Silicon (`arm64`). Es la variante multiarquitectura que mantiene uno
 de los responsables de la imagen oficial.
 
+## Microservicios en contenedores (perfil `backend`)
+
+Con `oneleft-backend` clonado junto a `oneleft-infra` y sus JAR compilados:
+
+```bash
+(cd ../../oneleft-backend && ./mvnw -DskipTests package)
+docker compose --profile backend --profile observability up -d --build
+```
+
+| Contenedor | Puerto | Notas |
+|---|---|---|
+| `oneleft-gateway` | 8080 | Swagger UI en <http://localhost:8080/swagger-ui.html> |
+| `oneleft-users` | 8081 | |
+| `oneleft-plans` | 8082 | |
+
+- **Tokens dentro de Docker:** Keycloak se configura con `KC_HOSTNAME=http://localhost:8180`, de modo que los
+  tokens siempre llevan como emisor la URL pública, y con `KC_HOSTNAME_BACKCHANNEL_DYNAMIC` para que los
+  contenedores descarguen sus claves por la red interna (`KEYCLOAK_JWKS=http://keycloak:8180/...`).
+- **Realm ya creado:** el realm solo se importa en el primer arranque. Para aplicar cambios del cliente
+  `oneleft-web` (por ejemplo, la URI de redirección de Swagger UI) a un Keycloak ya en marcha:
+  `keycloak/sincronizar-cliente-web.sh`.
+- Los contenedores envían sus logs a Loki y Prometheus los alcanza en los mismos puertos publicados.
+
 ## Observabilidad (perfil `observability`)
 
 | Servicio | Imagen | Puerto | Uso |
