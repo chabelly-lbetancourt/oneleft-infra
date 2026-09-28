@@ -1,0 +1,215 @@
+# Entorno de desarrollo de OneLeft
+# Uso: cp .env.example .env && docker compose up -d
+name: oneleft
+
+services:
+  postgres:
+    # Multi-architecture (amd64 and arm64) PostgreSQL image with PostGIS
+    image: imresamu/postgis:17-3.5
+    container_name: oneleft-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: oneleft
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d oneleft"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:8-alpine
+    container_name: oneleft-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: oneleft-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5
+    container_name: oneleft-keycloak
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      # Tokens always carry the public URL as issuer; containers can reach Keycloak
+      # through the internal network (keycloak:8180) thanks to the dynamic backchannel
+      KC_HOSTNAME: http://localhost:8180
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HTTP_PORT: "8180"
+    ports:
+      - "8180:8180"
+    volumes:
+      - ./keycloak/oneleft-realm.json:/opt/keycloak/data/import/oneleft-realm.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # The Keycloak image has no curl: the health endpoint (port 9000) is checked with bash
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"UP\"' <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  # --- Observabilidad (docker compose --profile observability up -d) ---
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    container_name: oneleft-prometheus
+    profiles: [observability]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  loki:
+    image: grafana/loki:3.7.8
+    container_name: oneleft-loki
+    profiles: [observability]
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+
+  grafana:
+    image: grafana/grafana:13.2.2
+    container_name: oneleft-grafana
+    profiles: [observability]
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      # Local only: read access without login to browse the dashboards
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/oneleft-microservices.json
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+
+  # --- Microservicios (docker compose --profile backend up -d --build) ---
+  # Requires oneleft-backend cloned next to oneleft-infra and the JARs built (./mvnw -DskipTests package)
+  gateway:
+    build: ../../oneleft-backend/gateway
+    image: oneleft/gateway:dev
+    container_name: oneleft-gateway
+    profiles: [backend]
+    environment: &backend-env
+      KEYCLOAK_ISSUER: http://localhost:8180/realms/oneleft
+      KEYCLOAK_JWKS: http://keycloak:8180/realms/oneleft/protocol/openid-connect/certs
+      USERS_URL: http://users:8081
+      PLANS_URL: http://plans:8082
+      SPRING_PROFILES_ACTIVE: observability
+      ONELEFT_LOKI_URL: http://loki:3100/loki/api/v1/push
+    ports:
+      - "8080:8080"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      users:
+        condition: service_healthy
+      plans:
+        condition: service_healthy
+    healthcheck: &backend-health
+      test: ["CMD-SHELL", "wget -qO- http://localhost:$${PORT:-8080}/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  users:
+    build: ../../oneleft-backend/users
+    image: oneleft/users:dev
+    container_name: oneleft-users
+    profiles: [backend]
+    environment:
+      <<: *backend-env
+      PORT: 8081
+      DB_URL: jdbc:postgresql://postgres:5432/users
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck: *backend-health
+
+  plans:
+    build: ../../oneleft-backend/plans
+    image: oneleft/plans:dev
+    container_name: oneleft-plans
+    profiles: [backend]
+    environment:
+      <<: *backend-env
+      PORT: 8082
+      DB_URL: jdbc:postgresql://postgres:5432/plans
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck: *backend-health
+
+volumes:
+  postgres-data:
+  redis-data:
+  rabbitmq-data:
+  prometheus-data:
+  loki-data:
+  grafana-data:
