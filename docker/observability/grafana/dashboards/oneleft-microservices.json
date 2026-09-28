@@ -1,6 +1,6 @@
 {
   "uid": "oneleft-microservicios",
-  "title": "OneLeft · Microservicios",
+  "title": "OneLeft · Microservices",
   "tags": [
     "oneleft"
   ],
@@ -15,7 +15,7 @@
   "panels": [
     {
       "type": "stat",
-      "title": "Servicios activos",
+      "title": "Services up",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -71,7 +71,7 @@
     },
     {
       "type": "stat",
-      "title": "Peticiones por segundo",
+      "title": "Requests per second",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -124,7 +124,7 @@
     },
     {
       "type": "stat",
-      "title": "Latencia p95",
+      "title": "p95 latency",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -177,7 +177,7 @@
     },
     {
       "type": "stat",
-      "title": "Errores 5xx",
+      "title": "5xx errors",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -234,7 +234,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Peticiones por servicio",
+      "title": "Requests per service",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -279,7 +279,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Latencia p95 por servicio",
+      "title": "p95 latency per service",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -324,7 +324,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Respuestas por código HTTP",
+      "title": "Responses by HTTP status",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -369,7 +369,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Memoria heap de la JVM",
+      "title": "JVM heap memory",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -414,7 +414,7 @@
     },
     {
       "type": "logs",
-      "title": "Logs de los microservicios (Loki)",
+      "title": "Microservice logs (Loki)",
       "datasource": {
         "type": "loki",
         "uid": "loki"

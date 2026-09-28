@@ -4,7 +4,7 @@ name: oneleft
 
 services:
   postgres:
-    # Imagen multiarquitectura (amd64 y arm64) de PostgreSQL con PostGIS
+    # Multi-architecture (amd64 and arm64) PostgreSQL image with PostGIS
     image: imresamu/postgis:17-3.5
     container_name: oneleft-postgres
     environment:
@@ -66,8 +66,8 @@ services:
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
-      # Los tokens siempre llevan como emisor la URL pública; los contenedores pueden
-      # llegar a Keycloak por la red interna (keycloak:8180) gracias al backchannel dinámico
+      # Tokens always carry the public URL as issuer; containers can reach Keycloak
+      # through the internal network (keycloak:8180) thanks to the dynamic backchannel
       KC_HOSTNAME: http://localhost:8180
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
       KC_HTTP_PORT: "8180"
@@ -79,7 +79,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      # La imagen de Keycloak no incluye curl: se comprueba el endpoint de salud (puerto 9000) con bash
+      # The Keycloak image has no curl: the health endpoint (port 9000) is checked with bash
       test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"UP\"' <&3"]
       interval: 10s
       timeout: 5s
@@ -118,10 +118,10 @@ services:
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
-      # Solo en local: acceso de lectura sin login para consultar los dashboards
+      # Local only: read access without login to browse the dashboards
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
-      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/oneleft-microservicios.json
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/oneleft-microservices.json
     ports:
       - "3000:3000"
     volumes:
@@ -133,7 +133,7 @@ services:
       - loki
 
   # --- Microservicios (docker compose --profile backend up -d --build) ---
-  # Requiere oneleft-backend clonado junto a oneleft-infra y los JAR compilados (./mvnw -DskipTests package)
+  # Requires oneleft-backend cloned next to oneleft-infra and the JARs built (./mvnw -DskipTests package)
   gateway:
     build: ../../oneleft-backend/gateway
     image: oneleft/gateway:dev
