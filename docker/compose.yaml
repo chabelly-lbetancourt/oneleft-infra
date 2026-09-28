@@ -169,9 +169,14 @@ services:
     environment:
       <<: *backend-env
       PORT: 8081
+      DB_URL: jdbc:postgresql://postgres:5432/users
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "8081:8081"
     depends_on:
+      postgres:
+        condition: service_healthy
       keycloak:
         condition: service_healthy
     healthcheck: *backend-health
