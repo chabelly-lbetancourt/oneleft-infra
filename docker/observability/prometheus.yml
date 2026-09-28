@@ -1,5 +1,5 @@
-# Prometheus en desarrollo local: los microservicios se ejecutan en el equipo (IntelliJ o java -jar)
-# y se accede a ellos desde el contenedor a través de host.docker.internal.
+# Prometheus for local development: the microservices run on the host (IntelliJ or java -jar)
+# and are reached from the container through host.docker.internal.
 global:
   scrape_interval: 10s
   evaluation_interval: 10s

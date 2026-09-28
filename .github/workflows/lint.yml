@@ -11,21 +11,21 @@ permissions:
   pull-requests: read
 
 jobs:
-  ramas-y-commits:
+  branches-and-commits:
     runs-on: ubuntu-latest
     steps:
-      - name: Validar nombre de rama
+      - name: Validate branch name
         env:
           BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
           re='^(dev|issue#[0-9]+|hotfix/[a-z0-9._-]+)$'
           if [[ ! "$BRANCH" =~ $re ]]; then
-            echo "::error::Rama no válida: '$BRANCH'. Usa dev, issue#<número> o hotfix/<descripción>."
+            echo "::error::Invalid branch: '$BRANCH'. Use dev, issue#<number> or hotfix/<description>."
             exit 1
           fi
-          echo "Rama válida: $BRANCH"
+          echo "Valid branch: $BRANCH"
 
-      - name: Validar commits (Conventional Commits con referencia al issue)
+      - name: Validate commits (Conventional Commits referencing the issue)
         env:
           GH_TOKEN: ${{ github.token }}
           EVENT: ${{ github.event_name }}
@@ -40,8 +40,8 @@ jobs:
           re='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: .+ \(?#[0-9]+\)?$'
           invalid=$(grep -Ev '^Merge ' commits.txt | grep -Ev "$re" || true)
           if [ -n "$invalid" ]; then
-            echo "::error::Commits que no cumplen el formato '<tipo>(<ámbito>): <descripción> #<issue>':"
+            echo "::error::Commits not matching '<type>(<scope>): <description> #<issue>':"
             echo "$invalid"
             exit 1
           fi
-          echo "Commits válidos:"; cat commits.txt
+          echo "Valid commits:"; cat commits.txt

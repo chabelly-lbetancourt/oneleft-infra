@@ -33,7 +33,7 @@
   "clients": [
     {
       "clientId": "oneleft-web",
-      "name": "OneLeft · app web y Android",
+      "name": "OneLeft · web and Android app",
       "publicClient": true,
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
@@ -56,7 +56,7 @@
     },
     {
       "clientId": "oneleft-api",
-      "name": "OneLeft · API (pruebas de integración)",
+      "name": "OneLeft · API (integration tests)",
       "publicClient": false,
       "secret": "oneleft-api-dev-secret",
       "standardFlowEnabled": false,

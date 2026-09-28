@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Aplica a un Keycloak ya en marcha las URIs de redirección y orígenes del cliente oneleft-web
-# definidos en oneleft-realm.json (el realm solo se importa en el primer arranque).
-# Uso: keycloak/sincronizar-cliente-web.sh   (desde oneleft-infra/docker, con el .env cargado)
+# Applies to a running Keycloak the redirect URIs and web origins of the oneleft-web client
+# defined in oneleft-realm.json (the realm is only imported on the first start).
+# Usage: keycloak/sync-web-client.sh   (from oneleft-infra/docker, with .env loaded)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 set -a; source .env; set +a
@@ -20,6 +20,6 @@ PY
 )
 CURRENT=$(curl -s -H "Authorization: Bearer $TOKEN" "$KC/admin/realms/oneleft/clients/$ID")
 MERGED=$(python3 -c 'import json,sys; c=json.loads(sys.argv[1]); c.update(json.loads(sys.argv[2])); print(json.dumps(c))' "$CURRENT" "$BODY")
-curl -s -o /dev/null -w "oneleft-web actualizado (HTTP %{http_code})\n" -X PUT \
+curl -s -o /dev/null -w "oneleft-web updated (HTTP %{http_code})\n" -X PUT \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   "$KC/admin/realms/oneleft/clients/$ID" -d "$MERGED"
