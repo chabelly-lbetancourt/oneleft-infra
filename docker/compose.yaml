@@ -66,6 +66,10 @@ services:
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
+      # Los tokens siempre llevan como emisor la URL pública; los contenedores pueden
+      # llegar a Keycloak por la red interna (keycloak:8180) gracias al backchannel dinámico
+      KC_HOSTNAME: http://localhost:8180
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
       KC_HTTP_PORT: "8180"
     ports:
       - "8180:8180"
@@ -127,6 +131,65 @@ services:
     depends_on:
       - prometheus
       - loki
+
+  # --- Microservicios (docker compose --profile backend up -d --build) ---
+  # Requiere oneleft-backend clonado junto a oneleft-infra y los JAR compilados (./mvnw -DskipTests package)
+  gateway:
+    build: ../../oneleft-backend/gateway
+    image: oneleft/gateway:dev
+    container_name: oneleft-gateway
+    profiles: [backend]
+    environment: &backend-env
+      KEYCLOAK_ISSUER: http://localhost:8180/realms/oneleft
+      KEYCLOAK_JWKS: http://keycloak:8180/realms/oneleft/protocol/openid-connect/certs
+      USERS_URL: http://users:8081
+      PLANS_URL: http://plans:8082
+      SPRING_PROFILES_ACTIVE: observability
+      ONELEFT_LOKI_URL: http://loki:3100/loki/api/v1/push
+    ports:
+      - "8080:8080"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      users:
+        condition: service_healthy
+      plans:
+        condition: service_healthy
+    healthcheck: &backend-health
+      test: ["CMD-SHELL", "wget -qO- http://localhost:$${PORT:-8080}/actuator/health/readiness | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  users:
+    build: ../../oneleft-backend/users
+    image: oneleft/users:dev
+    container_name: oneleft-users
+    profiles: [backend]
+    environment:
+      <<: *backend-env
+      PORT: 8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    healthcheck: *backend-health
+
+  plans:
+    build: ../../oneleft-backend/plans
+    image: oneleft/plans:dev
+    container_name: oneleft-plans
+    profiles: [backend]
+    environment:
+      <<: *backend-env
+      PORT: 8082
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck: *backend-health
 
 volumes:
   postgres-data:
