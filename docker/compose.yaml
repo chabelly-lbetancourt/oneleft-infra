@@ -71,6 +71,9 @@ services:
       KC_HOSTNAME: http://localhost:8180
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
       KC_HTTP_PORT: "8180"
+      # Google as identity provider (HU-021): oneleft-realm.json reads them as ${GOOGLE_CLIENT_ID} placeholders
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
     ports:
       - "8180:8180"
     volumes:
