@@ -13,4 +13,4 @@ TOKEN=$(curl -s -X POST "$KC/realms/master/protocol/openid-connect/token" \
 python3 -c 'import json; print(json.dumps({"ifResourceExists": "SKIP", "users": json.load(open("keycloak/oneleft-realm.json"))["users"]}))' \
   | curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
       "$KC/admin/realms/oneleft/partialImport" --data @- \
-  | python3 -c 'import json,sys; r=json.load(sys.stdin); print(f"test users: {r.get(\"added\", 0)} added, {r.get(\"skipped\", 0)} already there")'
+  | python3 -c 'import json,sys; r=json.load(sys.stdin); print("test users:", r.get("added", 0), "added,", r.get("skipped", 0), "already there")'
