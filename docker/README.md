@@ -97,8 +97,22 @@ Al arrancar se importa el realm [`keycloak/oneleft-realm.json`](keycloak/oneleft
 | Cliente `oneleft-web` | Público, Authorization Code + PKCE (S256), para la app web (`localhost:4200`) y Android (`https://localhost`, `oneleft://`) |
 | Cliente `oneleft-api` | Confidencial, *client credentials*, para pruebas de integración |
 | Usuarios de prueba | `ana@oneleft.dev` (user) y `admin@oneleft.dev` (user, admin), con las contraseñas definidas en el fichero del realm |
+| Proveedor `google` | «Continuar con Google» (HU-021). El *client id* y el secreto se leen de `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` del `.env` |
 
 Consola de administración: <http://localhost:8180/admin> con las credenciales de `KEYCLOAK_ADMIN` del `.env`.
+
+### Inicio de sesión con Google
+
+1. En [Google Cloud Console](https://console.cloud.google.com), proyecto `OneLeft`: pantalla de consentimiento
+   (audiencia externa, en modo prueba, con los correos de prueba) y un cliente OAuth de tipo *Aplicación web* con la
+   URI de redirección `http://localhost:8180/realms/oneleft/broker/google/endpoint`.
+2. Copiar el ID y el secreto del cliente en `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` del `.env`.
+3. `docker compose up -d keycloak` y, si el realm ya estaba importado, `keycloak/sync-identity-providers.sh`
+   (actualiza el proveedor sin perder las cuentas ya enlazadas).
+
+La primera vez que alguien entra con Google se crea su cuenta con el rol `user`, y el perfil toma el nombre de Google.
+Si ya existe una cuenta con el mismo correo, Keycloak pide confirmar con la contraseña de esa cuenta y las enlaza, en
+lugar de crear otra.
 
 > Todas las credenciales de este directorio son **solo para desarrollo local**. En AWS se usan secretos
 > gestionados con AWS Secrets Manager.
