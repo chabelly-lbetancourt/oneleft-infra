@@ -1,6 +1,7 @@
 {
   "realm": "oneleft",
   "displayName": "OneLeft",
+  "loginTheme": "oneleft",
   "enabled": true,
   "registrationAllowed": true,
   "registrationEmailAsUsername": true,
