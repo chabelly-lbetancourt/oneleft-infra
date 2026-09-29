@@ -1,0 +1,216 @@
+/*
+ * OneLeft identity on top of Keycloak v2: the same tokens as the web app (oneleft-frontend/src/styles.css).
+ * Ink on cream, tangerine actions with ink text, lime for the empty spot and "sticker" surfaces.
+ * Fonts: Bricolage Grotesque and DM Sans (SIL Open Font License, see ../fonts).
+ */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('../fonts/bricolage-grotesque-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('../fonts/bricolage-grotesque-latin-ext-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 1000;
+  src: url('../fonts/dm-sans-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 1000;
+  src: url('../fonts/dm-sans-latin-ext-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  --ol-ink: #17131f;
+  --ol-cream: #fff8f0;
+  --ol-sand: #f6ebdd;
+  --ol-lime: #d9f46b;
+  --ol-tangerine: #ff5f1f;
+  --ol-tangerine-light: #ff7a3d;
+  --ol-tangerine-dark: #c7320a;
+  --ol-sticker: 4px 4px 0 0 var(--ol-ink);
+  /* Keycloak paints a blue band on top of the card: the brand lime instead */
+  --keycloak-card-top-color: var(--ol-lime);
+  --keycloak-bg-logo-url: none;
+
+  --pf-v5-global--FontFamily--text: 'DM Sans', system-ui, sans-serif;
+  --pf-v5-global--FontFamily--heading: 'Bricolage Grotesque', 'DM Sans', system-ui, sans-serif;
+  --pf-v5-global--primary-color--100: var(--ol-tangerine);
+  --pf-v5-global--primary-color--200: var(--ol-tangerine-dark);
+  --pf-v5-global--link--Color: var(--ol-tangerine-dark);
+  --pf-v5-global--link--Color--hover: var(--ol-ink);
+  --pf-v5-global--Color--100: var(--ol-ink);
+  --pf-v5-global--BackgroundColor--100: #fff;
+}
+
+html,
+body,
+.pf-v5-c-login {
+  background: var(--ol-cream) !important;
+  color: var(--ol-ink);
+  font-family: var(--pf-v5-global--FontFamily--text);
+}
+
+/* No background image (the body is #keycloak-bg): the cream and a big dashed spot behind the card */
+#keycloak-bg {
+  background-image: none !important;
+}
+.pf-v5-c-login::before {
+  content: '';
+  position: fixed;
+  width: 26rem;
+  height: 26rem;
+  right: -8rem;
+  bottom: -8rem;
+  border: 4px dashed var(--ol-ink);
+  border-radius: 50%;
+  background: var(--ol-lime);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Logo: the empty spot and the wordmark */
+.pf-v5-c-login__header {
+  position: relative;
+  z-index: 1;
+}
+#kc-header-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--ol-ink) !important;
+  font-family: var(--pf-v5-global--FontFamily--heading);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+#kc-header-wrapper::before {
+  content: '+1';
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 2px dashed var(--ol-ink);
+  border-radius: 50%;
+  background: var(--ol-lime);
+  font-size: 1.05rem;
+}
+
+/* The card as a sticker */
+.pf-v5-c-login__main {
+  position: relative;
+  z-index: 1;
+  border: 2px solid var(--ol-ink);
+  border-radius: 1.5rem;
+  border-top: 2px solid var(--ol-ink) !important;
+  box-shadow: var(--ol-sticker);
+  overflow: hidden;
+}
+#kc-header-wrapper * {
+  color: inherit !important;
+}
+.pf-v5-c-login__main-header .pf-v5-c-title,
+#kc-page-title {
+  font-family: var(--pf-v5-global--FontFamily--heading);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.pf-v5-c-form__label-text {
+  font-weight: 700;
+}
+
+/* Fields: one ink border instead of PatternFly's bottom lines */
+.pf-v5-c-form-control {
+  border: 2px solid var(--ol-ink);
+  border-radius: 0.9rem;
+  background: #fff;
+}
+.pf-v5-c-form-control::before,
+.pf-v5-c-form-control::after {
+  display: none;
+}
+.pf-v5-c-form-control > input,
+.pf-v5-c-form-control > select {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.pf-v5-c-form-control:focus-within {
+  outline: 2px solid var(--ol-ink);
+  outline-offset: 2px;
+}
+/* The password field and its eye button share one border */
+.pf-v5-c-input-group .pf-v5-c-form-control {
+  border-right: 0;
+  border-radius: 0.9rem 0 0 0.9rem;
+}
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control {
+  border: 2px solid var(--ol-ink);
+  border-left: 0;
+  border-radius: 0 0.9rem 0.9rem 0;
+  background: #fff;
+}
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control::after {
+  display: none;
+}
+
+/* Buttons: tangerine with ink text, pressed like a sticker */
+.pf-v5-c-button.pf-m-primary,
+.pf-v5-c-button.pf-m-secondary {
+  border: 2px solid var(--ol-ink);
+  border-radius: 999px;
+  box-shadow: 2px 2px 0 0 var(--ol-ink);
+  font-weight: 700;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+.pf-v5-c-button.pf-m-primary {
+  --pf-v5-c-button--m-primary--BackgroundColor: var(--ol-tangerine);
+  --pf-v5-c-button--m-primary--hover--BackgroundColor: var(--ol-tangerine-light);
+  --pf-v5-c-button--m-primary--focus--BackgroundColor: var(--ol-tangerine-light);
+  --pf-v5-c-button--m-primary--active--BackgroundColor: var(--ol-tangerine);
+  --pf-v5-c-button--m-primary--Color: var(--ol-ink);
+  --pf-v5-c-button--m-primary--hover--Color: var(--ol-ink);
+  --pf-v5-c-button--m-primary--focus--Color: var(--ol-ink);
+  --pf-v5-c-button--m-primary--active--Color: var(--ol-ink);
+}
+.pf-v5-c-button.pf-m-secondary {
+  --pf-v5-c-button--m-secondary--BackgroundColor: #fff;
+  --pf-v5-c-button--m-secondary--hover--BackgroundColor: var(--ol-sand);
+  --pf-v5-c-button--m-secondary--Color: var(--ol-ink);
+  --pf-v5-c-button--m-secondary--hover--Color: var(--ol-ink);
+  --pf-v5-c-button--after--BorderWidth: 0;
+  --pf-v5-c-button--hover--after--BorderWidth: 0;
+}
+.pf-v5-c-button.pf-m-primary:active,
+.pf-v5-c-button.pf-m-secondary:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+/* Footer bands ("Or continue with", "New user? Register"): separated by the dashed line of a ticket */
+.pf-v5-c-login__main-footer-band {
+  background: transparent;
+  border-top: 2px dashed var(--ol-ink);
+}
+a {
+  font-weight: 700;
+}

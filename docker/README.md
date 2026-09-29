@@ -98,6 +98,7 @@ Al arrancar se importa el realm [`keycloak/oneleft-realm.json`](keycloak/oneleft
 | Cliente `oneleft-api` | Confidencial, *client credentials*, para pruebas de integración |
 | Usuarios de prueba | `ana@oneleft.dev` (user) y `admin@oneleft.dev` (user, admin), con las contraseñas definidas en el fichero del realm |
 | Proveedor `google` | «Continuar con Google» (HU-021). El *client id* y el secreto se leen de `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` del `.env` |
+| Tema de login `oneleft` | `keycloak/themes/oneleft`: hereda de `keycloak.v2` con la identidad de la web (tipografías, colores, logo y textos es/en). En un Keycloak ya en marcha: `keycloak/sync-login-theme.sh` |
 
 Consola de administración: <http://localhost:8180/admin> con las credenciales de `KEYCLOAK_ADMIN` del `.env`.
 
