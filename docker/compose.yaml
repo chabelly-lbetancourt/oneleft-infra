@@ -78,6 +78,8 @@ services:
       - "8180:8180"
     volumes:
       - ./keycloak/oneleft-realm.json:/opt/keycloak/data/import/oneleft-realm.json:ro
+      # OneLeft login theme (same identity as the web app)
+      - ./keycloak/themes/oneleft:/opt/keycloak/themes/oneleft:ro
     depends_on:
       postgres:
         condition: service_healthy
