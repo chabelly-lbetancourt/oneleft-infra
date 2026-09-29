@@ -1,6 +1,7 @@
 {
   "realm": "oneleft",
   "displayName": "OneLeft",
+  "loginTheme": "oneleft",
   "enabled": true,
   "registrationAllowed": true,
   "registrationEmailAsUsername": true,
@@ -65,6 +66,27 @@
       "protocol": "openid-connect"
     }
   ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "providerId": "google",
+      "displayName": "Google",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${GOOGLE_CLIENT_ID}",
+        "clientSecret": "${GOOGLE_CLIENT_SECRET}",
+        "defaultScope": "openid email profile",
+        "syncMode": "IMPORT",
+        "guiOrder": "1",
+        "hideOnLoginPage": "false"
+      }
+    }
+  ],
   "users": [
     {
       "id": "a624d063-bd1e-442d-b52d-8de2df356c13",
@@ -103,6 +125,25 @@
       "realmRoles": [
         "user",
         "admin"
+      ]
+    },
+    {
+      "id": "5b0f7c2e-8d4a-4f3b-9c61-2e7a9d4b8f10",
+      "username": "lucia@oneleft.dev",
+      "email": "lucia@oneleft.dev",
+      "firstName": "Lucía",
+      "lastName": "Pruebas",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "lucia-dev",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
       ]
     }
   ]
