@@ -65,6 +65,27 @@
       "protocol": "openid-connect"
     }
   ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "providerId": "google",
+      "displayName": "Google",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${GOOGLE_CLIENT_ID}",
+        "clientSecret": "${GOOGLE_CLIENT_SECRET}",
+        "defaultScope": "openid email profile",
+        "syncMode": "IMPORT",
+        "guiOrder": "1",
+        "hideOnLoginPage": "false"
+      }
+    }
+  ],
   "users": [
     {
       "id": "a624d063-bd1e-442d-b52d-8de2df356c13",
