@@ -126,6 +126,25 @@
         "user",
         "admin"
       ]
+    },
+    {
+      "id": "5b0f7c2e-8d4a-4f3b-9c61-2e7a9d4b8f10",
+      "username": "lucia@oneleft.dev",
+      "email": "lucia@oneleft.dev",
+      "firstName": "Lucía",
+      "lastName": "Pruebas",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "lucia-dev",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
     }
   ]
 }
