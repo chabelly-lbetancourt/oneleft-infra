@@ -149,6 +149,7 @@ services:
       KEYCLOAK_JWKS: http://keycloak:8180/realms/oneleft/protocol/openid-connect/certs
       USERS_URL: http://users:8081
       PLANS_URL: http://plans:8082
+      NOTIFICATIONS_URL: http://notifications:8083
       # Rate limiting buckets (gateway)
       REDIS_HOST: redis
       # seed: demo profiles and plans (dev only; pre enables it explicitly, production never)
@@ -164,6 +165,8 @@ services:
       users:
         condition: service_healthy
       plans:
+        condition: service_healthy
+      notifications:
         condition: service_healthy
     healthcheck: &backend-health
       test: ["CMD-SHELL", "wget -qO- http://localhost:$${PORT:-8080}/actuator/health/readiness | grep -q UP"]
@@ -207,6 +210,35 @@ services:
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
     ports:
       - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck: *backend-health
+
+  # Notices of nearby plans (HU-006): listens to plan.published and notifies in the app (through plans) and by Web Push
+  notifications:
+    build: ../../oneleft-backend/notifications
+    image: oneleft/notifications:dev
+    container_name: oneleft-notifications
+    profiles: [backend]
+    environment:
+      <<: *backend-env
+      PORT: 8083
+      DB_URL: jdbc:postgresql://postgres:5432/notifications
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      # Web Push keys (./generate-vapid-keys.sh --write). Empty: notices only inside the app
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+    ports:
+      - "8083:8083"
     depends_on:
       postgres:
         condition: service_healthy
