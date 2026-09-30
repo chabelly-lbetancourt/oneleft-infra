@@ -72,7 +72,7 @@ docker compose --profile backend --profile observability up -d --build
   aplicarlo a un Keycloak ya creado: `keycloak/sync-email.sh`.
 - **Migraciones reescritas:** si Flyway no arranca porque una migración ya aplicada ha cambiado (por ejemplo, al
   renombrarlas al inglés en backend#33), vacía la base de datos del servicio y reinícialo:
-  `postgres/reset-service-database.sh plans` (o `users`). Solo en local: borra los datos de ese servicio.
+  `postgres/reset-service-database.sh plans` (o `users` o `notifications`). Solo en local: borra los datos de ese servicio.
 
 ## Observabilidad (perfil `observability`)
 
