@@ -425,7 +425,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{app=~\"gateway|users|plans\"}",
+          "expr": "{app=~\"gateway|users|plans|notifications\"}",
           "refId": "A"
         }
       ],

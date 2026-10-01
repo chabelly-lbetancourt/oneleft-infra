@@ -27,6 +27,7 @@ docker compose --profile observability up -d
 | Redis | `redis:8-alpine` | 6379 | Posiciones en tiempo real (GEO), bloqueos distribuidos y caché |
 | RabbitMQ | `rabbitmq:4-management-alpine` | 5672 · 15672 (consola) | Eventos entre microservicios |
 | Keycloak | `quay.io/keycloak/keycloak:26.5` | 8180 | Identidad: OAuth2 / OpenID Connect |
+| Mailpit | `axllent/mailpit:v1.27.0` | 1025 (SMTP) · 8025 (bandeja) | Captura los correos de Keycloak sin enviarlos (HU-067) |
 
 Se usa `imresamu/postgis` porque la imagen oficial `postgis/postgis` solo se publica para `amd64`, y el
 entorno de desarrollo es un Mac con Apple Silicon (`arm64`). Es la variante multiarquitectura que mantiene uno
@@ -46,6 +47,7 @@ docker compose --profile backend --profile observability up -d --build
 | `oneleft-gateway` | 8080 | Swagger UI en <http://localhost:8080/swagger-ui.html> |
 | `oneleft-users` | 8081 | |
 | `oneleft-plans` | 8082 | |
+| `oneleft-notifications` | 8083 | Avisos de planes cercanos (HU-006); Web Push con las claves VAPID de `.env` |
 
 - **Tokens dentro de Docker:** Keycloak se configura con `KC_HOSTNAME=http://localhost:8180`, de modo que los
   tokens siempre llevan como emisor la URL pública, y con `KC_HOSTNAME_BACKCHANNEL_DYNAMIC` para que los
@@ -57,10 +59,20 @@ docker compose --profile backend --profile observability up -d --build
 - **Datos de demostración (seed):** los servicios arrancan con los perfiles `observability,seed`: perfiles de
   `ana@oneleft.dev` y `admin@oneleft.dev` y 8 planes alrededor de Vallecas que empiezan en las próximas horas. Para
   arrancar sin datos, usa `SPRING_PROFILES_ACTIVE=observability docker compose --profile backend up -d`. Los usuarios
-  de prueba tienen ids fijos en el realm para que el seed los enlace.
+  de prueba tienen ids fijos en el realm para que el seed los enlace. En `notifications`, Lucía y Admin tienen los
+  avisos activados alrededor de Vallecas: un plan que publique Ana allí les llega al momento.
+- **Web Push (HU-006):** `notifications` firma los avisos con un par de claves VAPID. Se generan una vez con
+  `./generate-vapid-keys.sh --write`, que las escribe en `.env` (nunca en el repositorio). Sin ellas, los avisos solo
+  llegan dentro de la app. Cambiarlas invalida las suscripciones de los navegadores.
+- **Correos de Keycloak (HU-067):** al registrarse con correo y contraseña hay que verificar el correo antes de
+  entrar, y «¿Has olvidado tu contraseña?» envía un enlace para cambiarla. Quien entra con Google no verifica nada
+  (`trustEmail`). En local, Keycloak envía por SMTP a Mailpit, que no los reenvía a nadie: se leen en
+  <http://localhost:8025>. En producción se rellenan las variables `SMTP_*` de `.env` con un servidor real (por
+  ejemplo, Amazon SES con `SMTP_AUTH=true` y `SMTP_STARTTLS=true`). Los correos salen en el idioma de la persona. Para
+  aplicarlo a un Keycloak ya creado: `keycloak/sync-email.sh`.
 - **Migraciones reescritas:** si Flyway no arranca porque una migración ya aplicada ha cambiado (por ejemplo, al
   renombrarlas al inglés en backend#33), vacía la base de datos del servicio y reinícialo:
-  `postgres/reset-service-database.sh plans` (o `users`). Solo en local: borra los datos de ese servicio.
+  `postgres/reset-service-database.sh plans` (o `users` o `notifications`). Solo en local: borra los datos de ese servicio.
 
 ## Observabilidad (perfil `observability`)
 
@@ -71,7 +83,7 @@ docker compose --profile backend --profile observability up -d --build
 | Grafana | `grafana/grafana:13.2.2` | 3000 | Dashboards; acceso de lectura sin login en local |
 
 - Los microservicios se ejecutan en el equipo (IntelliJ o `java -jar`), así que Prometheus los alcanza en
-  `host.docker.internal:8080-8082` ([`observability/prometheus.yml`](observability/prometheus.yml)).
+  `host.docker.internal:8080-8083` ([`observability/prometheus.yml`](observability/prometheus.yml)).
 - Para enviar logs a Loki, los servicios se arrancan con el perfil `observability`
   (`SPRING_PROFILES_ACTIVE=observability`).
 - Las fuentes de datos y el dashboard **OneLeft · Microservicios** se aprovisionan automáticamente desde
