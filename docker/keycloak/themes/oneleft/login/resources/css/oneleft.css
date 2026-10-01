@@ -127,19 +127,39 @@ body,
   outline: 2px solid var(--ol-ink);
   outline-offset: 2px;
 }
-/* The password field and its eye button share one border */
-.pf-v5-c-input-group .pf-v5-c-form-control {
-  border-right: 0;
+/* The password field and its eye button are one control: the group owns the border and the focus ring, so the ring
+   surrounds both (it used to surround only the text part) */
+.pf-v5-c-input-group:has(.pf-v5-c-form-control) {
+  border: 1px solid var(--ol-field-border);
+  border-radius: 0.75rem;
+  background: #fff;
+}
+.pf-v5-c-input-group:has(.pf-v5-c-form-control):hover {
+  border-color: #a8a29e;
+}
+.pf-v5-c-input-group:has(.pf-v5-c-form-control):focus-within {
+  border-color: var(--ol-ink);
+  outline: 2px solid var(--ol-ink);
+  outline-offset: 2px;
+}
+.pf-v5-c-input-group .pf-v5-c-form-control,
+.pf-v5-c-input-group .pf-v5-c-form-control:hover,
+.pf-v5-c-input-group .pf-v5-c-form-control:focus-within {
+  border: 0;
+  outline: none;
   border-radius: 0.75rem 0 0 0.75rem;
 }
 .pf-v5-c-input-group .pf-v5-c-button.pf-m-control {
-  border: 1px solid var(--ol-field-border);
-  border-left: 0;
+  border: 0;
   border-radius: 0 0.75rem 0.75rem 0;
-  background: #fff;
+  background: transparent;
 }
 .pf-v5-c-input-group .pf-v5-c-button.pf-m-control::after {
   display: none;
+}
+/* A field with an error keeps its red border on the whole control */
+.pf-v5-c-input-group:has(.pf-v5-c-form-control.pf-m-error) {
+  border-color: var(--pf-v5-global--danger-color--100, #c9190b);
 }
 
 /* Buttons: primary in ink with white text (AA contrast), secondary outlined */
@@ -179,4 +199,10 @@ body,
 }
 a {
   font-weight: 600;
+}
+
+/* No language selector on the login and sign-up pages: the app sends its own language (ui_locales), so Keycloak
+   always matches the language chosen in OneLeft */
+.pf-v5-c-login__main-header-utilities {
+  display: none;
 }
