@@ -7,6 +7,7 @@
   "registrationEmailAsUsername": true,
   "loginWithEmailAllowed": true,
   "resetPasswordAllowed": true,
+  "verifyEmail": true,
   "rememberMe": true,
   "sslRequired": "external",
   "internationalizationEnabled": true,
@@ -15,6 +16,17 @@
     "en"
   ],
   "defaultLocale": "es",
+  "smtpServer": {
+    "host": "${SMTP_HOST:mailpit}",
+    "port": "${SMTP_PORT:1025}",
+    "from": "${SMTP_FROM:no-reply@oneleft.dev}",
+    "fromDisplayName": "OneLeft",
+    "auth": "${SMTP_AUTH:false}",
+    "user": "${SMTP_USER:}",
+    "password": "${SMTP_PASSWORD:}",
+    "starttls": "${SMTP_STARTTLS:false}",
+    "ssl": "${SMTP_SSL:false}"
+  },
   "accessTokenLifespan": 900,
   "roles": {
     "realm": [
