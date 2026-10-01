@@ -206,3 +206,8 @@ a {
 .pf-v5-c-login__main-header-utilities {
   display: none;
 }
+/* Without the selector the title takes the whole width of the header: Keycloak makes it a 70 % / 30 % grid from
+   768 px (div.pf-v5-c-login__main-header), which used to break "Crea tu cuenta de OneLeft" in two lines */
+.pf-v5-c-login div.pf-v5-c-login__main-header {
+  grid-template-columns: 100%;
+}
