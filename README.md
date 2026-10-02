@@ -9,25 +9,24 @@
 - [`docker/`](docker): entorno local con Docker Compose por perfiles: dependencias (PostgreSQL/PostGIS, Redis,
   RabbitMQ, Keycloak), `backend` (gateway, users, plans) y `observability` (Prometheus, Loki y Grafana con
   dashboards versionados en `docker/observability`).
-- `k8s/` *(infra#4, pendiente)*: manifiestos de Kubernetes con Kustomize y autoescalado.
-- `aws/` *(infra#5, pendiente)*: despliegue en AWS.
+- Compose de producción *(infra#4, pendiente)*: imágenes publicadas y Caddy con HTTPS como entrada única.
+- Despliegue en AWS Lightsail *(infra#5, pendiente)*: una instancia por entorno, desplegada desde GitHub Actions.
 
 ## Entornos
 
-| Entorno | Rama | Dónde | Imágenes | Kubernetes |
-|---|---|---|---|---|
-| **dev** | `dev` | Equipo local con Docker Compose | Compiladas en local | — |
-| **pre** (*staging*) | `pre` | AWS (EKS), mismo clúster que pro | `ghcr.io/chabelly-lbetancourt/oneleft-*:pre` | namespace `oneleft-pre` (overlay `k8s/overlays/pre`) |
-| **pro** | `main` | AWS (EKS) | `ghcr.io/chabelly-lbetancourt/oneleft-*:latest` | namespace `oneleft-pro` (overlay `k8s/overlays/pro`) |
+| Entorno | Rama | Dónde | Imágenes |
+|---|---|---|---|
+| **dev** | `dev` | Equipo local con Docker Compose | Compiladas en local |
+| **pre** (*staging*) | `pre` | Instancia de AWS Lightsail con Docker Compose (encendida para validar cada *release*) | `ghcr.io/chabelly-lbetancourt/oneleft-*:pre` |
+| **pro** | `main` | Instancia de AWS Lightsail con Docker Compose | `ghcr.io/chabelly-lbetancourt/oneleft-*:latest` |
 
-- `pre` es una copia a escala reducida de producción: mismas imágenes y manifiestos, con una réplica por servicio,
-  su propia base de datos (esquema aparte en RDS) y su propio realm de Keycloak. Aquí se prueba todo antes de
-  promocionar a `main`.
-- En AWS, cada entorno sirve la web, el gateway (`/api`) y Keycloak (`/auth`) desde el mismo origen, detrás del
-  balanceador. Así la web de `pre` no lleva ningún host compilado (ver `environment.pre.ts` en el frontend).
+- `pre` es una copia de producción: mismas imágenes y misma definición de Compose, con su propia base de datos y su
+  propio realm de Keycloak. Aquí se prueba todo antes de promocionar a `main`.
+- En AWS, cada entorno sirve la web, el gateway (`/api`) y Keycloak (`/auth`) desde el mismo origen, detrás de Caddy
+  (HTTPS automático). Así la web de `pre` no lleva ningún host compilado (ver `environment.pre.ts` en el frontend).
 - El flujo de ramas y de promoción está en [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Stack:** Docker · Kubernetes · AWS · Grafana · Loki · Prometheus · GitHub Actions
+**Stack:** Docker · Docker Compose · AWS Lightsail · Caddy · Grafana · Loki · Prometheus · GitHub Actions
 
 ## Proyecto
 
@@ -35,7 +34,7 @@
 |---|---|
 | [oneleft-backend](https://github.com/chabelly-lbetancourt/oneleft-backend) | Microservicios Spring Boot |
 | [oneleft-frontend](https://github.com/chabelly-lbetancourt/oneleft-frontend) | App web Angular y app Android con Capacitor |
-| [oneleft-infra](https://github.com/chabelly-lbetancourt/oneleft-infra) | Docker, Kubernetes, AWS y observabilidad |
+| [oneleft-infra](https://github.com/chabelly-lbetancourt/oneleft-infra) | Docker Compose, despliegue en AWS Lightsail y observabilidad |
 | [oneleft-docs](https://github.com/chabelly-lbetancourt/oneleft-docs) | Memoria del TFM y documentación del proceso |
 
 Tablero Kanban: [OneLeft · TFM](https://github.com/users/chabelly-lbetancourt/projects/4) · Normas de trabajo: [CONTRIBUTING.md](CONTRIBUTING.md)
