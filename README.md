@@ -7,8 +7,8 @@
 ## Contenido
 
 - [`docker/`](docker): entorno local con Docker Compose por perfiles: dependencias (PostgreSQL/PostGIS, Redis,
-  RabbitMQ, Keycloak), `backend` (gateway, users, plans) y `observability` (Prometheus, Loki y Grafana con
-  dashboards versionados en `docker/observability`).
+  RabbitMQ, Keycloak), `backend` (gateway, users, plans, notifications), `frontend` (la web en un contenedor nginx,
+  en el puerto 4300) y `observability` (Prometheus, Loki y Grafana con dashboards versionados en `docker/observability`).
 - Compose de producción *(infra#4, pendiente)*: imágenes publicadas y Caddy con HTTPS como entrada única.
 - Despliegue en AWS Lightsail *(infra#5, pendiente)*: una instancia por entorno, desplegada desde GitHub Actions.
 
