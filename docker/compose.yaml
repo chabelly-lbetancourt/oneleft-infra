@@ -178,6 +178,8 @@ services:
       # seed: demo profiles and plans (dev only; pre enables it explicitly, production never)
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-observability,seed}
       ONELEFT_LOKI_URL: http://loki:3100/loki/api/v1/push
+      # Web origins allowed by the gateway: ng serve (4200), the web container (4300) and the Android app
+      CORS_ALLOWED_ORIGINS: http://localhost:4200,http://localhost:4300,https://localhost,capacitor://localhost
     ports:
       - "8080:8080"
     depends_on:
@@ -270,6 +272,32 @@ services:
       keycloak:
         condition: service_healthy
     healthcheck: *backend-health
+
+  # --- Web app (docker compose --profile frontend up -d --build) ---
+  # Requires oneleft-frontend cloned next to oneleft-infra. Builds the image from its Dockerfile with the local
+  # configuration (API on localhost:8080, Keycloak on localhost:8180); the PrimeUI licence is read from the frontend
+  # .env as a BuildKit secret, so it never ends up in the image
+  frontend:
+    build:
+      context: ../../oneleft-frontend
+      args:
+        CONFIGURATION: development
+      secrets:
+        - primeui
+    image: oneleft/web:dev
+    container_name: oneleft-web
+    profiles: [frontend]
+    ports:
+      - "4300:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+secrets:
+  primeui:
+    file: ../../oneleft-frontend/.env
 
 volumes:
   postgres-data:

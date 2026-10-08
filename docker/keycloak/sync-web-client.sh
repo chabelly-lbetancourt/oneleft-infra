@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Applies to a running Keycloak the redirect URIs and web origins of the oneleft-web client
+# Applies to a running Keycloak the redirect URIs, web origins and post-logout redirect URIs of the oneleft-web client
 # defined in oneleft-realm.json (the realm is only imported on the first start).
 # Usage: keycloak/sync-web-client.sh   (from oneleft-infra/docker, with .env loaded)
 set -euo pipefail
@@ -15,11 +15,19 @@ ID=$(curl -s -H "Authorization: Bearer $TOKEN" "$KC/admin/realms/oneleft/clients
 BODY=$(python3 - <<'PY'
 import json
 client = next(c for c in json.load(open("keycloak/oneleft-realm.json"))["clients"] if c["clientId"] == "oneleft-web")
-print(json.dumps({"redirectUris": client["redirectUris"], "webOrigins": client["webOrigins"]}))
+print(json.dumps({"redirectUris": client["redirectUris"], "webOrigins": client["webOrigins"],
+                  "postLogout": client["attributes"]["post.logout.redirect.uris"]}))
 PY
 )
 CURRENT=$(curl -s -H "Authorization: Bearer $TOKEN" "$KC/admin/realms/oneleft/clients/$ID")
-MERGED=$(python3 -c 'import json,sys; c=json.loads(sys.argv[1]); c.update(json.loads(sys.argv[2])); print(json.dumps(c))' "$CURRENT" "$BODY")
+MERGED=$(python3 - "$CURRENT" "$BODY" <<'PY'
+import json, sys
+client, wanted = json.loads(sys.argv[1]), json.loads(sys.argv[2])
+client.setdefault("attributes", {})["post.logout.redirect.uris"] = wanted.pop("postLogout")
+client.update(wanted)
+print(json.dumps(client))
+PY
+)
 curl -s -o /dev/null -w "oneleft-web updated (HTTP %{http_code})\n" -X PUT \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   "$KC/admin/realms/oneleft/clients/$ID" -d "$MERGED"
