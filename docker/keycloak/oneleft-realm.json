@@ -53,16 +53,18 @@
       "protocol": "openid-connect",
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:4200/*##https://localhost/*##oneleft://*"
+        "post.logout.redirect.uris": "http://localhost:4200/*##http://localhost:4300/*##https://localhost/*##oneleft://*"
       },
       "redirectUris": [
         "http://localhost:4200/*",
+        "http://localhost:4300/*",
         "https://localhost/*",
         "oneleft://*",
         "http://localhost:8080/swagger-ui/oauth2-redirect.html"
       ],
       "webOrigins": [
         "http://localhost:4200",
+        "http://localhost:4300",
         "https://localhost",
         "http://localhost:8080"
       ]
