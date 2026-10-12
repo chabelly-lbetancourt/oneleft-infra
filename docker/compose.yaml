@@ -173,6 +173,8 @@ services:
       USERS_URL: http://users:8081
       PLANS_URL: http://plans:8082
       NOTIFICATIONS_URL: http://notifications:8083
+      # Chat of each plan (HU-008): history and the WebSocket the gateway relays
+      CHAT_URL: http://chat:8084
       # Rate limiting buckets (gateway)
       REDIS_HOST: redis
       # seed: demo profiles and plans (dev only; pre enables it explicitly, production never)
@@ -270,6 +272,35 @@ services:
       rabbitmq:
         condition: service_healthy
       keycloak:
+        condition: service_healthy
+    healthcheck: *backend-health
+
+  # Chat of each plan (HU-008): WebSocket relayed by the gateway; asks plans who is in a plan and hears its departures
+  # and cancellations. Not a dependency of the gateway: without the chat, publishing and joining plans still work
+  chat:
+    build: ../../oneleft-backend/chat
+    image: oneleft/chat:dev
+    container_name: oneleft-chat
+    profiles: [backend]
+    environment:
+      <<: *backend-env
+      PORT: 8084
+      DB_URL: jdbc:postgresql://postgres:5432/chat
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      plans:
         condition: service_healthy
     healthcheck: *backend-health
 
