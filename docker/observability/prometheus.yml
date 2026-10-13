@@ -20,6 +20,8 @@ scrape_configs:
         labels: { service: chat }
       - targets: ['host.docker.internal:8085']
         labels: { service: social }
+      - targets: ['host.docker.internal:8086']
+        labels: { service: reputation }
 
   - job_name: keycloak
     metrics_path: /metrics

@@ -177,6 +177,8 @@ services:
       CHAT_URL: http://chat:8084
       # Following people (HU-047)
       SOCIAL_URL: http://social:8085
+      # Reputation from events (HU-009)
+      REPUTATION_URL: http://reputation:8086
       # Rate limiting buckets (gateway)
       REDIS_HOST: redis
       # seed: demo profiles and plans (dev only; pre enables it explicitly, production never)
@@ -327,6 +329,33 @@ services:
       keycloak:
         condition: service_healthy
       users:
+        condition: service_healthy
+    healthcheck: *backend-health
+
+  # Reputation from events (HU-009): listens to the events of plans (and of the reports, HU-033) in durable queues and
+  # keeps an immutable ledger. Not a dependency of the gateway: without it, plans and the chat still work
+  reputation:
+    build: ../../oneleft-backend/reputation
+    image: oneleft/reputation:dev
+    container_name: oneleft-reputation
+    profiles: [backend]
+    environment:
+      <<: *backend-env
+      PORT: 8086
+      DB_URL: jdbc:postgresql://postgres:5432/reputation
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    ports:
+      - "8086:8086"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
     healthcheck: *backend-health
 
