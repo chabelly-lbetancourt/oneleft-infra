@@ -175,6 +175,8 @@ services:
       NOTIFICATIONS_URL: http://notifications:8083
       # Chat of each plan (HU-008): history and the WebSocket the gateway relays
       CHAT_URL: http://chat:8084
+      # Following people (HU-047)
+      SOCIAL_URL: http://social:8085
       # Rate limiting buckets (gateway)
       REDIS_HOST: redis
       # seed: demo profiles and plans (dev only; pre enables it explicitly, production never)
@@ -301,6 +303,30 @@ services:
       keycloak:
         condition: service_healthy
       plans:
+        condition: service_healthy
+    healthcheck: *backend-health
+
+  # Following people (HU-047): public and private profiles and requests; asks users the name of someone new. Not a
+  # dependency of the gateway: without it, plans and the chat still work
+  social:
+    build: ../../oneleft-backend/social
+    image: oneleft/social:dev
+    container_name: oneleft-social
+    profiles: [backend]
+    environment:
+      <<: *backend-env
+      PORT: 8085
+      DB_URL: jdbc:postgresql://postgres:5432/social
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "8085:8085"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      users:
         condition: service_healthy
     healthcheck: *backend-health
 
