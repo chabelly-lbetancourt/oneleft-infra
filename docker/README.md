@@ -48,6 +48,7 @@ docker compose --profile backend --profile observability up -d --build
 | `oneleft-users` | 8081 | |
 | `oneleft-plans` | 8082 | |
 | `oneleft-notifications` | 8083 | Avisos de planes cercanos (HU-006); Web Push con las claves VAPID de `.env` |
+| `oneleft-chat` | 8084 | Chat de cada plan (HU-008); el gateway hace de relé de su WebSocket en `ws://localhost:8080/ws/chat` |
 
 - **Tokens dentro de Docker:** Keycloak se configura con `KC_HOSTNAME=http://localhost:8180`, de modo que los
   tokens siempre llevan como emisor la URL pública, y con `KC_HOSTNAME_BACKCHANNEL_DYNAMIC` para que los
@@ -72,7 +73,28 @@ docker compose --profile backend --profile observability up -d --build
   aplicarlo a un Keycloak ya creado: `keycloak/sync-email.sh`.
 - **Migraciones reescritas:** si Flyway no arranca porque una migración ya aplicada ha cambiado (por ejemplo, al
   renombrarlas al inglés en backend#33), vacía la base de datos del servicio y reinícialo:
-  `postgres/reset-service-database.sh plans` (o `users` o `notifications`). Solo en local: borra los datos de ese servicio.
+  `postgres/reset-service-database.sh plans` (o `users`, `notifications` o `chat`). Solo en local: borra los datos de ese servicio.
+
+## Web en contenedor (perfil `frontend`)
+
+Con `oneleft-frontend` clonado junto a `oneleft-infra`, la web se construye con su propio `Dockerfile` y se sirve con
+nginx en <http://localhost:4300>, junto al resto del stack:
+
+```bash
+docker compose --profile backend --profile frontend up -d --build
+```
+
+| Contenedor | Puerto | Notas |
+|---|---|---|
+| `oneleft-web` | 4300 | Imagen `oneleft/web:dev` compilada con la configuración `development` (API en `localhost:8080`, Keycloak en `localhost:8180`); salud en `/healthz` |
+
+- **Licencia de PrimeUI:** se lee del `.env` de `oneleft-frontend` como secreto de BuildKit (`secrets.primeui`), así
+  que nunca queda en la imagen ni en este repositorio. Sin ese fichero, la web se construye igual pero muestra el aviso
+  de licencia de PrimeNG.
+- **Origen permitido:** `http://localhost:4300` está en el cliente `oneleft-web` de Keycloak (redirección, orígenes y
+  cierre de sesión) y en `CORS_ALLOWED_ORIGINS` del gateway. En un Keycloak ya creado: `keycloak/sync-web-client.sh`.
+- `ng serve` (puerto 4200) sigue siendo lo más cómodo para desarrollar; el contenedor sirve para probar la imagen que se
+  despliega.
 
 ## Observabilidad (perfil `observability`)
 
@@ -83,7 +105,7 @@ docker compose --profile backend --profile observability up -d --build
 | Grafana | `grafana/grafana:13.2.2` | 3000 | Dashboards; acceso de lectura sin login en local |
 
 - Los microservicios se ejecutan en el equipo (IntelliJ o `java -jar`), así que Prometheus los alcanza en
-  `host.docker.internal:8080-8083` ([`observability/prometheus.yml`](observability/prometheus.yml)).
+  `host.docker.internal:8080-8084` ([`observability/prometheus.yml`](observability/prometheus.yml)).
 - Para enviar logs a Loki, los servicios se arrancan con el perfil `observability`
   (`SPRING_PROFILES_ACTIVE=observability`).
 - Las fuentes de datos y el dashboard **OneLeft · Microservicios** se aprovisionan automáticamente desde
@@ -106,7 +128,7 @@ Al arrancar se importa el realm [`keycloak/oneleft-realm.json`](keycloak/oneleft
 |---|---|
 | Realm | `oneleft` (issuer `http://localhost:8180/realms/oneleft`) |
 | Roles | `user` (por defecto) y `admin` |
-| Cliente `oneleft-web` | Público, Authorization Code + PKCE (S256), para la app web (`localhost:4200`) y Android (`https://localhost`, `oneleft://`) |
+| Cliente `oneleft-web` | Público, Authorization Code + PKCE (S256), para la app web (`localhost:4200` con `ng serve` y `localhost:4300` en contenedor) y Android (`https://localhost`, `oneleft://`) |
 | Cliente `oneleft-api` | Confidencial, *client credentials*, para pruebas de integración |
 | Usuarios de prueba | `ana@oneleft.dev` (user), `admin@oneleft.dev` (user, admin) y `lucia@oneleft.dev` (user, para los flujos de tres personas como la lista de espera), con las contraseñas definidas en el fichero del realm. En un Keycloak ya en marcha: `keycloak/sync-test-users.sh` |
 | Proveedor `google` | «Continuar con Google» (HU-021). El *client id* y el secreto se leen de `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` del `.env` |
