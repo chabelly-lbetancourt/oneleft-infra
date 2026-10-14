@@ -36,6 +36,32 @@ services:
       timeout: 3s
       retries: 20
 
+  # S3-compatible object storage of the profile photos (HU-020). Versity S3 Gateway on a volume; S3 or a Lightsail
+  # bucket when deployed. The metadata of each object (its type) go to a sidecar folder, so any file system works
+  storage:
+    image: versity/versitygw:v1.8.0
+    container_name: oneleft-storage
+    entrypoint:
+      - sh
+      - -c
+      - mkdir -p /data/objects /data/meta && exec versitygw posix --sidecar /data/meta /data/objects
+    environment:
+      ROOT_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      ROOT_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      VGW_HEALTH: /health
+      # The web (4200, 4300) and the Android app upload the photos straight with the signed links. Local only:
+      # deployed, the bucket only allows the origin of the app
+      VGW_CORS_ALLOW_ORIGIN: "*"
+    ports:
+      - "7070:7070"
+    volumes:
+      - storage-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7070/health >/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   rabbitmq:
     image: rabbitmq:4-management-alpine
     container_name: oneleft-rabbitmq
@@ -216,10 +242,18 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/users
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
+      # Profile photos (HU-020): the service calls the storage inside the network, but signs the links for the
+      # address browsers reach (the Android emulator too, with adb reverse tcp:7070)
+      STORAGE_ENDPOINT: http://storage:7070
+      STORAGE_PUBLIC_ENDPOINT: http://localhost:7070
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
     ports:
       - "8081:8081"
     depends_on:
       postgres:
+        condition: service_healthy
+      storage:
         condition: service_healthy
       keycloak:
         condition: service_healthy
@@ -388,6 +422,7 @@ secrets:
 volumes:
   postgres-data:
   redis-data:
+  storage-data:
   rabbitmq-data:
   prometheus-data:
   loki-data:
