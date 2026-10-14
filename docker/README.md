@@ -28,10 +28,29 @@ docker compose --profile observability up -d
 | RabbitMQ | `rabbitmq:4-management-alpine` | 5672 · 15672 (consola) | Eventos entre microservicios |
 | Keycloak | `quay.io/keycloak/keycloak:26.5` | 8180 | Identidad: OAuth2 / OpenID Connect |
 | Mailpit | `axllent/mailpit:v1.27.0` | 1025 (SMTP) · 8025 (bandeja) | Captura los correos de Keycloak sin enviarlos (HU-067) |
+| Almacenamiento de objetos | `versity/versitygw:v1.8.0` | 7070 | Fotos de perfil (HU-020): compatible con S3, con enlaces firmados |
 
 Se usa `imresamu/postgis` porque la imagen oficial `postgis/postgis` solo se publica para `amd64`, y el
 entorno de desarrollo es un Mac con Apple Silicon (`arm64`). Es la variante multiarquitectura que mantiene uno
 de los responsables de la imagen oficial.
+
+### Almacenamiento de las fotos (HU-020)
+
+Las fotos de perfil van del navegador o la app al almacenamiento con enlaces firmados: `users` firma el enlace y
+guarda dónde está cada foto, pero la foto nunca pasa por él. En local, el almacenamiento es
+[Versity S3 Gateway](https://github.com/versity/versitygw), un servidor compatible con S3 que ocupa unos 10 MB de
+memoria. Se eligió porque MinIO dejó de publicar sus imágenes; el código es el mismo que con S3 (AWS SDK).
+
+- **Claves:** `STORAGE_ACCESS_KEY` y `STORAGE_SECRET_KEY` de `.env` (las de `.env.example` sirven en local).
+- **Bucket:** `oneleft-photos`, privado. Lo crea `users` al arrancar si no existe; las fotos solo se ven con los
+  enlaces firmados que da la API a quien ha iniciado sesión, y caducan en una hora.
+- **Direcciones:** `users` llama al almacenamiento por la red interna (`http://storage:7070`), pero firma los enlaces
+  para `http://localhost:7070`, que es donde llega el navegador. Para la app Android en el emulador:
+  `adb reverse tcp:7070 tcp:7070`, como con el gateway y Keycloak.
+- **CORS:** en local acepta cualquier origen, para la web en 4200 y 4300 y la app Android.
+- **Al desplegar:** un bucket de S3 o de Lightsail en lugar de este contenedor. En `users`, `STORAGE_ENDPOINT` y
+  `STORAGE_PUBLIC_ENDPOINT` con la dirección del bucket, sus claves, `STORAGE_REGION`, `STORAGE_PATH_STYLE=false` y
+  `STORAGE_CREATE_BUCKET=false`, y en el bucket una regla CORS que solo permita `PUT` desde el origen de la app.
 
 ## Microservicios en contenedores (perfil `backend`)
 
@@ -45,7 +64,7 @@ docker compose --profile backend --profile observability up -d --build
 | Contenedor | Puerto | Notas |
 |---|---|---|
 | `oneleft-gateway` | 8080 | Swagger UI en <http://localhost:8080/swagger-ui.html> |
-| `oneleft-users` | 8081 | |
+| `oneleft-users` | 8081 | Fotos de perfil en `oneleft-storage` (HU-020) |
 | `oneleft-plans` | 8082 | |
 | `oneleft-notifications` | 8083 | Avisos de planes cercanos (HU-006); Web Push con las claves VAPID de `.env` |
 | `oneleft-chat` | 8084 | Chat de cada plan (HU-008); el gateway hace de relé de su WebSocket en `ws://localhost:8080/ws/chat` |
