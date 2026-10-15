@@ -267,6 +267,8 @@ services:
     environment:
       <<: *backend-env
       PORT: 8082
+      # Whether the plans of someone may be seen in their social profile (HU-048): the social service decides
+      SOCIAL_URL: http://social:8085
       DB_URL: jdbc:postgresql://postgres:5432/plans
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
