@@ -65,7 +65,7 @@ docker compose --profile backend --profile observability up -d --build
 |---|---|---|
 | `oneleft-gateway` | 8080 | Swagger UI en <http://localhost:8080/swagger-ui.html> |
 | `oneleft-users` | 8081 | Fotos de perfil en `oneleft-storage` (HU-020) |
-| `oneleft-plans` | 8082 | |
+| `oneleft-plans` | 8082 | Pregunta a `social` si se pueden ver los planes recientes de alguien (HU-048) |
 | `oneleft-notifications` | 8083 | Avisos de planes cercanos (HU-006); Web Push con las claves VAPID de `.env` |
 | `oneleft-chat` | 8084 | Chat de cada plan (HU-008); el gateway hace de relé de su WebSocket en `ws://localhost:8080/ws/chat` |
 | `oneleft-social` | 8085 | Seguir a personas (HU-047): perfiles públicos o privados y solicitudes; pregunta a `users` el nombre de alguien nuevo |
