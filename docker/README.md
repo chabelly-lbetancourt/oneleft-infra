@@ -68,7 +68,7 @@ docker compose --profile backend --profile observability up -d --build
 | `oneleft-plans` | 8082 | Pregunta a `social` si se pueden ver los planes recientes de alguien (HU-048) |
 | `oneleft-notifications` | 8083 | Avisos de planes cercanos (HU-006); Web Push con las claves VAPID de `.env` |
 | `oneleft-chat` | 8084 | Chat de cada plan (HU-008); el gateway hace de relé de su WebSocket en `ws://localhost:8080/ws/chat` |
-| `oneleft-social` | 8085 | Seguir a personas (HU-047): perfiles públicos o privados y solicitudes; pregunta a `users` el nombre de alguien nuevo |
+| `oneleft-social` | 8085 | Seguir a personas (HU-047): perfiles públicos o privados y solicitudes; pregunta a `users` el nombre de alguien nuevo. Feed de actividad (HU-051): escucha los eventos de `plans` en las colas `social.*` de RabbitMQ y guarda en Redis la primera página de cada feed |
 | `oneleft-reputation` | 8086 | Reputación dirigida por eventos (HU-009): escucha los eventos de `plans` en colas duraderas y guarda un libro de apuntes inmutable |
 
 - **Tokens dentro de Docker:** Keycloak se configura con `KC_HOSTNAME=http://localhost:8180`, de modo que los

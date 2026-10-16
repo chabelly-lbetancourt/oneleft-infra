@@ -344,7 +344,8 @@ services:
         condition: service_healthy
     healthcheck: *backend-health
 
-  # Following people (HU-047): public and private profiles and requests; asks users the name of someone new. Not a
+  # Following people (HU-047): public and private profiles and requests; asks users the name of someone new. The
+  # activity feed (HU-051) listens to the events of plans and caches the first page of each feed in Redis. Not a
   # dependency of the gateway: without it, plans and the chat still work
   social:
     build: ../../oneleft-backend/social
@@ -357,10 +358,18 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/social
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      REDIS_HOST: redis
     ports:
       - "8085:8085"
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       keycloak:
         condition: service_healthy
