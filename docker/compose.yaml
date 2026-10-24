@@ -420,8 +420,9 @@ services:
     profiles: [frontend]
     ports:
       - "4300:8080"
+    # 127.0.0.1, not localhost: BusyBox wget tries ::1 first and nginx only listens on IPv4
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz >/dev/null"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/healthz >/dev/null"]
       interval: 10s
       timeout: 5s
       retries: 5
