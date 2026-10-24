@@ -1,0 +1,36 @@
+# Only entry point of the deployed environments (infra#4): HTTPS with automatic certificates from Let's Encrypt (with
+# ONELEFT_DOMAIN=localhost, from Caddy's own local authority). The web, the API and Keycloak share one origin, so the
+# browser needs no CORS and the web image works on any domain.
+{
+	email {$ACME_EMAIL}
+}
+
+{$ONELEFT_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age={$HSTS_MAX_AGE:31536000}; includeSubDomains"
+		-Server
+	}
+
+	# Keycloak runs under /auth (KC_HTTP_RELATIVE_PATH)
+	handle /auth/* {
+		reverse_proxy keycloak:8080
+	}
+
+	# API, links to share plans with their preview, and the OpenAPI description (Swagger UI)
+	@gateway path /api/* /share/* /api-docs/* /swagger-ui* /v3/api-docs*
+	handle @gateway {
+		reverse_proxy gateway:8080
+	}
+
+	# Grafana (--profile observability), with its own login
+	handle /grafana* {
+		reverse_proxy grafana:3000
+	}
+
+	# The web app; nginx sends every route that is not a file to index.html
+	handle {
+		reverse_proxy web:8080
+	}
+}

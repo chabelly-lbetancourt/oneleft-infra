@@ -1,6 +1,7 @@
 # OneLeft · Infraestructura
 
 [![lint](https://github.com/chabelly-lbetancourt/oneleft-infra/actions/workflows/lint.yml/badge.svg?branch=dev)](https://github.com/chabelly-lbetancourt/oneleft-infra/actions/workflows/lint.yml)
+[![ci](https://github.com/chabelly-lbetancourt/oneleft-infra/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/chabelly-lbetancourt/oneleft-infra/actions/workflows/ci.yml)
 
 **OneLeft** conecta planes para las próximas horas que tienen plazas libres («falta uno») con personas cercanas que pueden unirse en tiempo real.
 
@@ -9,7 +10,9 @@
 - [`docker/`](docker): entorno local con Docker Compose por perfiles: dependencias (PostgreSQL/PostGIS, Redis,
   RabbitMQ, Keycloak), `backend` (gateway, users, plans, notifications, chat), `frontend` (la web en un contenedor nginx,
   en el puerto 4300) y `observability` (Prometheus, Loki y Grafana con dashboards versionados en `docker/observability`).
-- Compose de producción *(infra#4, pendiente)*: imágenes publicadas y Caddy con HTTPS como entrada única.
+- [`docker/compose.prod.yaml`](docker/compose.prod.yaml): Compose de los entornos desplegados (pre y pro), con las
+  imágenes publicadas, Caddy con HTTPS como entrada única, límites de memoria para una instancia de 8 GB y una copia
+  diaria de PostgreSQL. Cómo se usa y cómo se prueba en local: [`docker/PRODUCCION.md`](docker/PRODUCCION.md).
 - Despliegue en AWS Lightsail *(infra#5, pendiente)*: una instancia por entorno, desplegada desde GitHub Actions.
 
 ## Entornos

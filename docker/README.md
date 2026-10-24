@@ -2,6 +2,8 @@
 
 Levanta en local todas las dependencias que necesitan los microservicios de OneLeft.
 
+Los entornos desplegados (pre y pro) usan otro Compose, con Caddy y HTTPS: [PRODUCCION.md](PRODUCCION.md).
+
 ## Uso
 
 ```bash

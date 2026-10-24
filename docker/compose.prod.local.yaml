@@ -1,0 +1,42 @@
+# Local test of compose.prod.yaml with the same definition (infra#4): Caddy on https://localhost with its own local
+# authority, the images built on this machine and an S3 gateway in place of the two Lightsail buckets (the photos
+# and the copies of PostgreSQL). The variables come from .env.prod.local (not committed): PRODUCCION.md,
+# «Producción en local»
+#   docker compose --env-file .env.prod.local -f compose.prod.yaml -f compose.prod.local.yaml up -d --wait
+services:
+  storage:
+    image: versity/versitygw:v1.8.0
+    entrypoint:
+      - sh
+      - -c
+      # Every folder of /data/objects is a bucket: the one of the copies is created here, users creates its own
+      - mkdir -p /data/objects/$${BACKUP_BUCKET} /data/meta && exec versitygw posix --sidecar /data/meta /data/objects
+    environment:
+      ROOT_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      ROOT_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      BACKUP_BUCKET: ${BACKUP_BUCKET}
+      VGW_HEALTH: /health
+      VGW_CORS_ALLOW_ORIGIN: https://localhost
+    # The browser uploads the photos straight to the storage with signed links
+    ports:
+      - "7070:7070"
+    volumes:
+      - storage-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:7070/health >/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  users:
+    depends_on:
+      storage:
+        condition: service_healthy
+
+  backup:
+    depends_on:
+      storage:
+        condition: service_healthy
+
+volumes:
+  storage-data:

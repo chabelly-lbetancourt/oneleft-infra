@@ -1,0 +1,90 @@
+{
+  "realm": "oneleft",
+  "displayName": "OneLeft",
+  "loginTheme": "oneleft",
+  "enabled": true,
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "loginWithEmailAllowed": true,
+  "resetPasswordAllowed": true,
+  "verifyEmail": true,
+  "rememberMe": true,
+  "sslRequired": "external",
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "es",
+    "en"
+  ],
+  "defaultLocale": "es",
+  "smtpServer": {
+    "host": "${SMTP_HOST:mailpit}",
+    "port": "${SMTP_PORT:1025}",
+    "from": "${SMTP_FROM:no-reply@oneleft.dev}",
+    "fromDisplayName": "OneLeft",
+    "auth": "${SMTP_AUTH:false}",
+    "user": "${SMTP_USER:}",
+    "password": "${SMTP_PASSWORD:}",
+    "starttls": "${SMTP_STARTTLS:false}",
+    "ssl": "${SMTP_SSL:false}"
+  },
+  "accessTokenLifespan": 900,
+  "roles": {
+    "realm": [
+      {
+        "name": "user",
+        "description": "Usuario de OneLeft"
+      },
+      {
+        "name": "admin",
+        "description": "Administrador y moderador"
+      }
+    ]
+  },
+  "defaultRoles": [
+    "user"
+  ],
+  "clients": [
+    {
+      "clientId": "oneleft-web",
+      "name": "OneLeft · web and Android app",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "https://${ONELEFT_DOMAIN}/*##oneleft://*"
+      },
+      "redirectUris": [
+        "https://${ONELEFT_DOMAIN}/*",
+        "oneleft://*",
+        "https://${ONELEFT_DOMAIN}/swagger-ui/oauth2-redirect.html"
+      ],
+      "webOrigins": [
+        "https://${ONELEFT_DOMAIN}",
+        "https://localhost"
+      ]
+    }
+  ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "providerId": "google",
+      "displayName": "Google",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${GOOGLE_CLIENT_ID}",
+        "clientSecret": "${GOOGLE_CLIENT_SECRET}",
+        "defaultScope": "openid email profile",
+        "syncMode": "IMPORT",
+        "guiOrder": "1",
+        "hideOnLoginPage": "false"
+      }
+    }
+  ]
+}
