@@ -1,0 +1,37 @@
+# Prometheus of the deployed environments (compose.prod.yaml, --profile observability): the services are reached
+# by name inside the Compose network.
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+scrape_configs:
+  - job_name: oneleft
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['gateway:8080']
+        labels: { service: gateway }
+      - targets: ['users:8081']
+        labels: { service: users }
+      - targets: ['plans:8082']
+        labels: { service: plans }
+      - targets: ['notifications:8083']
+        labels: { service: notifications }
+      - targets: ['chat:8084']
+        labels: { service: chat }
+      - targets: ['social:8085']
+        labels: { service: social }
+      - targets: ['reputation:8086']
+        labels: { service: reputation }
+
+  - job_name: keycloak
+    metrics_path: /auth/metrics
+    static_configs:
+      - targets: ['keycloak:9000']
+
+  - job_name: rabbitmq
+    static_configs:
+      - targets: ['rabbitmq:15692']
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
