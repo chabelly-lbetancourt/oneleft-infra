@@ -285,6 +285,12 @@ services:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      # A plan from a sentence (HU-010): Claude through Spring AI. It is only switched on when ANTHROPIC_API_KEY has a
+      # value (in .env, never in the repository); without it the draft answers «not available»
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      SPRING_AI_MODEL_CHAT: ${ANTHROPIC_API_KEY:+anthropic}
+      SPRING_AI_CHAT_CLIENT_ENABLED: ${ANTHROPIC_API_KEY:+true}
+      PLAN_DRAFT_MODEL: ${PLAN_DRAFT_MODEL:-claude-haiku-5-5}
     ports:
       - "8082:8082"
     depends_on:

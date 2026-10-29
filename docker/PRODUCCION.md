@@ -75,6 +75,13 @@ de nuevo y subirlo en el mismo cambio. Como en local, el realm **solo se importa
 desplegado, los cambios se aplican desde la consola (`https://<dominio>/auth/admin`). La persona administradora de la
 app se crea también desde la consola.
 
+## Crear un plan con una frase (HU-010)
+
+`plans` pide a Claude (Anthropic, con Spring AI) que entienda la frase de quien crea un plan. Solo se activa si
+`ANTHROPIC_API_KEY` tiene valor en el `.env` de la instancia: sin ella, el servicio arranca igual y el borrador
+responde «no disponible». La frase sale de la instancia hacia el proveedor (no se guarda), y así lo dice el texto de
+privacidad. El modelo se cambia con `PLAN_DRAFT_MODEL`.
+
 ## Copia diaria de PostgreSQL
 
 El servicio `backup` (imagen [`backup/`](backup), construida en la instancia) hace cada día, a `BACKUP_TIME` (UTC),
