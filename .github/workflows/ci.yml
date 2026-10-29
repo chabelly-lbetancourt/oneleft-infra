@@ -30,6 +30,9 @@ jobs:
           docker compose --env-file .env.example --profile backend --profile observability config --quiet
 
       - name: Production Compose (and its local test)
+        env:
+          # Required by the Compose file (the oneleft-accounts client of Keycloak); the example leaves it empty
+          ACCOUNTS_CLIENT_SECRET: not-a-secret
         run: |
           docker compose --env-file .env.prod.example -f compose.prod.yaml --profile observability config --quiet
           docker compose --env-file .env.prod.example -f compose.prod.yaml -f compose.prod.local.yaml config --quiet

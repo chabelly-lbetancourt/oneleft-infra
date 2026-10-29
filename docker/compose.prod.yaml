@@ -114,9 +114,12 @@ services:
     <<: *backend
     image: ${ONELEFT_IMAGES:-ghcr.io/chabelly-lbetancourt/oneleft-}users:${ONELEFT_IMAGE_TAG:-latest}
     environment:
-      <<: [*backend-env, *database]
+      <<: [*backend-env, *database, *rabbitmq]
       PORT: 8081
       DB_URL: jdbc:postgresql://postgres:5432/users
+      # Deleting an account (HU-045): in Keycloak, under /auth, with its own client
+      KEYCLOAK_ADMIN_URL: http://keycloak:8080/auth
+      ACCOUNTS_CLIENT_SECRET: ${ACCOUNTS_CLIENT_SECRET:?the secret of the oneleft-accounts client}
       # Profile photos (HU-020) in the Lightsail bucket: browsers upload them straight with signed links
       STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
       STORAGE_PUBLIC_ENDPOINT: ${STORAGE_PUBLIC_ENDPOINT:-${STORAGE_ENDPOINT}}
@@ -130,6 +133,8 @@ services:
     mem_limit: 512m
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
       keycloak:
         condition: service_healthy
@@ -245,6 +250,7 @@ services:
       JAVA_OPTS_KC_HEAP: -Xms256m -Xmx512m
       # Placeholders of oneleft-realm.prod.json
       ONELEFT_DOMAIN: ${ONELEFT_DOMAIN}
+      ACCOUNTS_CLIENT_SECRET: ${ACCOUNTS_CLIENT_SECRET:?the secret of the oneleft-accounts client}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       # Email verification and password reset (HU-067), with Amazon SES

@@ -10,7 +10,7 @@ TOKEN=$(curl -s -X POST "$KC/realms/master/protocol/openid-connect/token" \
   -d grant_type=password -d client_id=admin-cli \
   -d username="$KEYCLOAK_ADMIN" --data-urlencode password="$KEYCLOAK_ADMIN_PASSWORD" \
   | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')
-python3 -c 'import json; print(json.dumps({"ifResourceExists": "SKIP", "users": json.load(open("keycloak/oneleft-realm.json"))["users"]}))' \
+python3 -c 'import json; print(json.dumps({"ifResourceExists": "SKIP", "users": [u for u in json.load(open("keycloak/oneleft-realm.json"))["users"] if "serviceAccountClientId" not in u]}))' \
   | curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
       "$KC/admin/realms/oneleft/partialImport" --data @- \
   | python3 -c 'import json,sys; r=json.load(sys.stdin); print("test users:", r.get("added", 0), "added,", r.get("skipped", 0), "already there")'
