@@ -78,6 +78,19 @@
       "serviceAccountsEnabled": true,
       "directAccessGrantsEnabled": true,
       "protocol": "openid-connect"
+    },
+    {
+      "clientId": "oneleft-accounts",
+      "name": "OneLeft accounts",
+      "description": "The users service deletes accounts with it (HU-045): client credentials, only manages users",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "${ACCOUNTS_CLIENT_SECRET:oneleft-accounts-dev}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true
     }
   ],
   "identityProviders": [
@@ -159,6 +172,16 @@
       "realmRoles": [
         "user"
       ]
+    },
+    {
+      "username": "service-account-oneleft-accounts",
+      "enabled": true,
+      "serviceAccountClientId": "oneleft-accounts",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users"
+        ]
+      }
     }
   ]
 }

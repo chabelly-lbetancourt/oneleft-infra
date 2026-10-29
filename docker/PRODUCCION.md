@@ -64,6 +64,11 @@ importa tal cual. [`keycloak/render-prod-realm.py`](keycloak/render-prod-realm.p
 keycloak/render-prod-realm.py
 ```
 
+El realm de producción conserva el cliente `oneleft-accounts` (HU-045): con él, el servicio `users` borra la cuenta de
+una persona en Keycloak cuando ella lo pide. Entra por *client credentials* y su cuenta de servicio solo puede gestionar
+usuarios. Su secreto es `ACCOUNTS_CLIENT_SECRET`, **obligatorio y sin valor por defecto**: sin él, ni Keycloak importa el
+realm ni Compose arranca `users`, en lugar de desplegar el de desarrollo.
+
 La CI comprueba con `--check` que el realm de producción está al día. Si cambia el de desarrollo, hay que generarlo
 de nuevo y subirlo en el mismo cambio. Como en local, el realm **solo se importa la primera vez**: en un entorno ya
 desplegado, los cambios se aplican desde la consola (`https://<dominio>/auth/admin`). La persona administradora de la

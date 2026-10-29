@@ -2,9 +2,9 @@
 """Builds the realm of the deployed environments (oneleft-realm.prod.json) from the development one.
 
 The development realm carries test users with known passwords, a test client with its secret and the local URLs of
-the web. The deployed realm keeps everything else (the web client, scopes, theme, Google, SMTP placeholders) but has
-no users and no test client, and the web client only accepts the public origin, which Keycloak fills in from
-ONELEFT_DOMAIN when it imports the realm.
+the web. The deployed realm keeps everything else (the web client, scopes, theme, Google, SMTP placeholders, and the
+client with which the users service deletes accounts) but has no test users and no test client, and the web client
+only accepts the public origin, which Keycloak fills in from ONELEFT_DOMAIN when it imports the realm.
 
 Usage (from oneleft-infra/docker): keycloak/render-prod-realm.py          writes oneleft-realm.prod.json
                                    keycloak/render-prod-realm.py --check  fails if it is out of date (CI)
@@ -25,9 +25,16 @@ ANDROID_ORIGIN = "https://localhost"
 
 def render() -> str:
     realm = json.loads(SOURCE.read_text(encoding="utf-8"))
-    realm.pop("users", None)
+    # No test users; the service account of oneleft-accounts stays, because the client needs it to delete accounts
+    realm["users"] = [
+        user for user in realm.get("users", []) if user.get("serviceAccountClientId") == "oneleft-accounts"
+    ]
     # oneleft-api only serves local tests (password grant with a secret in the repository): not deployed
     realm["clients"] = [client for client in realm["clients"] if client["clientId"] != "oneleft-api"]
+    # The secret of that client has no default here: without ACCOUNTS_CLIENT_SECRET the import fails, instead of
+    # deploying the development one
+    accounts = next(client for client in realm["clients"] if client["clientId"] == "oneleft-accounts")
+    accounts["secret"] = "${ACCOUNTS_CLIENT_SECRET}"
     web = next(client for client in realm["clients"] if client["clientId"] == "oneleft-web")
     web["redirectUris"] = [f"{ORIGIN}/*", ANDROID_REDIRECT, f"{ORIGIN}/swagger-ui/oauth2-redirect.html"]
     web["webOrigins"] = [ORIGIN, ANDROID_ORIGIN]
