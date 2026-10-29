@@ -40,8 +40,9 @@ deja sin memoria a los demás (en local, con 3,8 GB para Docker, ya pasó en las
 | PostgreSQL | 1 GB | `shared_buffers=256MB` |
 | RabbitMQ | 384 MB | |
 | Redis | 128 MB | `maxmemory 96mb`, se descartan primero las claves más antiguas |
+| ranker (Python, HU-012) | 256 MB | |
 | Caddy, la web, la copia | 128, 64 y 256 MB | |
-| **Total** | **6,1 GB** | quedan unos 1,9 GB para el sistema y Docker |
+| **Total** | **6,4 GB** | quedan unos 1,6 GB para el sistema y Docker |
 | Observabilidad (opcional) | 768 MB | Prometheus 192, Loki 192 y Grafana 384 |
 
 ## Variables y secretos
@@ -131,7 +132,7 @@ La misma definición se prueba en el equipo con [`compose.prod.local.yaml`](comp
 El stack de desarrollo se para antes, porque no caben los dos a la vez.
 
 ```bash
-cd ../../oneleft-backend && ./mvnw -B -q -DskipTests package && for s in gateway users plans notifications chat social reputation; do docker build -q -t oneleft/$s:prod-local $s; done
+cd ../../oneleft-backend && ./mvnw -B -q -DskipTests package && for s in gateway users plans notifications chat social reputation ranker; do docker build -q -t oneleft/$s:prod-local $s; done
 ```
 
 ```bash

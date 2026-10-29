@@ -314,6 +314,8 @@ services:
       # Web Push keys (./generate-vapid-keys.sh --write). Empty: notices only inside the app
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      # Who to notify first (HU-012). Without the ranker, or if it fails, the nearest people go first
+      RANKER_URL: http://ranker:8087
     ports:
       - "8083:8083"
     depends_on:
@@ -324,6 +326,23 @@ services:
       keycloak:
         condition: service_healthy
     healthcheck: *backend-health
+
+  # Who to notify first (HU-012): a small Python service that gives the probability that each person takes a spot.
+  # Not a dependency of notifications: without it the nearest people are notified first
+  ranker:
+    build: ../../oneleft-backend/ranker
+    image: oneleft/ranker:dev
+    container_name: oneleft-ranker
+    profiles: [backend]
+    mem_limit: 256m
+    ports:
+      - "8087:8087"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8087/health').status == 200 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
 
   # Chat of each plan (HU-008): WebSocket relayed by the gateway; asks plans who is in a plan and hears its departures
   # and cancellations. Not a dependency of the gateway: without the chat, publishing and joining plans still work
