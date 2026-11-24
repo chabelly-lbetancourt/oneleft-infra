@@ -45,6 +45,18 @@ x-rabbitmq: &rabbitmq
   RABBITMQ_USER: ${RABBITMQ_USER}
   RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
 
+# Photos in the Lightsail bucket, the same one for users (profile photos, HU-020) and plans (albums of the plans,
+# HU-052, under memories/): browsers upload them straight with signed links
+x-storage: &storage
+  STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+  STORAGE_PUBLIC_ENDPOINT: ${STORAGE_PUBLIC_ENDPOINT:-${STORAGE_ENDPOINT}}
+  STORAGE_BUCKET: ${STORAGE_BUCKET}
+  STORAGE_REGION: ${STORAGE_REGION}
+  STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+  STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+  STORAGE_PATH_STYLE: ${STORAGE_PATH_STYLE:-false}
+  STORAGE_CREATE_BUCKET: ${STORAGE_CREATE_BUCKET:-false}
+
 services:
   caddy:
     image: caddy:2.10-alpine
@@ -114,21 +126,13 @@ services:
     <<: *backend
     image: ${ONELEFT_IMAGES:-ghcr.io/chabelly-lbetancourt/oneleft-}users:${ONELEFT_IMAGE_TAG:-latest}
     environment:
-      <<: [*backend-env, *database, *rabbitmq]
+      # Profile photos (HU-020): the storage settings
+      <<: [*backend-env, *database, *rabbitmq, *storage]
       PORT: 8081
       DB_URL: jdbc:postgresql://postgres:5432/users
       # Deleting an account (HU-045): in Keycloak, under /auth, with its own client
       KEYCLOAK_ADMIN_URL: http://keycloak:8080/auth
       ACCOUNTS_CLIENT_SECRET: ${ACCOUNTS_CLIENT_SECRET:?the secret of the oneleft-accounts client}
-      # Profile photos (HU-020) in the Lightsail bucket: browsers upload them straight with signed links
-      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
-      STORAGE_PUBLIC_ENDPOINT: ${STORAGE_PUBLIC_ENDPOINT:-${STORAGE_ENDPOINT}}
-      STORAGE_BUCKET: ${STORAGE_BUCKET}
-      STORAGE_REGION: ${STORAGE_REGION}
-      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
-      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
-      STORAGE_PATH_STYLE: ${STORAGE_PATH_STYLE:-false}
-      STORAGE_CREATE_BUCKET: ${STORAGE_CREATE_BUCKET:-false}
       JAVA_TOOL_OPTIONS: -Xmx288m -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError
     mem_limit: 512m
     depends_on:
@@ -143,7 +147,8 @@ services:
     <<: *backend
     image: ${ONELEFT_IMAGES:-ghcr.io/chabelly-lbetancourt/oneleft-}plans:${ONELEFT_IMAGE_TAG:-latest}
     environment:
-      <<: [*backend-env, *database, *rabbitmq]
+      # Album of photos of a plan (HU-052): the storage settings. Without them the album answers «not available»
+      <<: [*backend-env, *database, *rabbitmq, *storage]
       PORT: 8082
       DB_URL: jdbc:postgresql://postgres:5432/plans
       # A plan from a sentence (HU-010): Claude through Spring AI. It is only switched on when ANTHROPIC_API_KEY has a

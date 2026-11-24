@@ -2,6 +2,15 @@
 # Uso: cp .env.example .env && docker compose up -d
 name: oneleft
 
+# Photos in the S3-compatible storage, the same bucket for users (profile photos, HU-020) and plans (albums of the
+# plans, HU-052, under memories/). The services call the storage inside the network, but sign the links for the
+# address browsers reach (the Android emulator too, with adb reverse tcp:7070)
+x-storage: &storage
+  STORAGE_ENDPOINT: http://storage:7070
+  STORAGE_PUBLIC_ENDPOINT: http://localhost:7070
+  STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+  STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+
 services:
   postgres:
     # Multi-architecture (amd64 and arm64) PostgreSQL image with PostGIS
@@ -36,7 +45,7 @@ services:
       timeout: 3s
       retries: 20
 
-  # S3-compatible object storage of the profile photos (HU-020). Versity S3 Gateway on a volume; S3 or a Lightsail
+  # S3-compatible object storage of the profile photos (HU-020) and the albums of the plans (HU-052). Versity S3 Gateway on a volume; S3 or a Lightsail
   # bucket when deployed. The metadata of each object (its type) go to a sidecar folder, so any file system works
   storage:
     image: versity/versitygw:v1.8.0
@@ -239,17 +248,12 @@ services:
     container_name: oneleft-users
     profiles: [backend]
     environment:
-      <<: *backend-env
+      # Profile photos (HU-020): the storage settings
+      <<: [*backend-env, *storage]
       PORT: 8081
       DB_URL: jdbc:postgresql://postgres:5432/users
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
-      # Profile photos (HU-020): the service calls the storage inside the network, but signs the links for the
-      # address browsers reach (the Android emulator too, with adb reverse tcp:7070)
-      STORAGE_ENDPOINT: http://storage:7070
-      STORAGE_PUBLIC_ENDPOINT: http://localhost:7070
-      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
-      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
       # Deleting an account (HU-045): it is deleted in Keycloak with its own client and announced to the services
       KEYCLOAK_ADMIN_URL: http://keycloak:8180
       ACCOUNTS_CLIENT_SECRET: ${ACCOUNTS_CLIENT_SECRET:-oneleft-accounts-dev}
@@ -275,7 +279,8 @@ services:
     container_name: oneleft-plans
     profiles: [backend]
     environment:
-      <<: *backend-env
+      # Album of photos of a plan (HU-052): the storage settings. Without them the album answers «not available»
+      <<: [*backend-env, *storage]
       PORT: 8082
       # Whether the plans of someone may be seen in their social profile (HU-048): the social service decides
       SOCIAL_URL: http://social:8085
@@ -295,6 +300,8 @@ services:
       - "8082:8082"
     depends_on:
       postgres:
+        condition: service_healthy
+      storage:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
