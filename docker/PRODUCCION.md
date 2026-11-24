@@ -51,6 +51,10 @@ Todo lo que cambia entre entornos va en un `.env` de la instancia, a partir de
 [`.env.prod.example`](.env.prod.example). Ese `.env` no se sube nunca al repositorio. Las contraseñas tienen que ser
 largas y aleatorias (`openssl rand -base64 32`).
 
+Las variables `STORAGE_*` del bucket de las fotos las reciben `users` (fotos de perfil, HU-020) y `plans` (álbum de
+fotos de cada plan, HU-052, bajo el prefijo `memories/`): un solo bucket y una sola clave para los dos. Sin ellas,
+`plans` arranca igual, pero el álbum responde `503 memory.unavailable`.
+
 ## El realm de Keycloak
 
 El realm de desarrollo trae personas de prueba con contraseñas conocidas y las URL locales de la web, así que no se

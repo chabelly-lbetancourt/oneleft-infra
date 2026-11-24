@@ -9,7 +9,7 @@ services:
     entrypoint:
       - sh
       - -c
-      # Every folder of /data/objects is a bucket: the one of the copies is created here, users creates its own
+      # Every folder of /data/objects is a bucket: the one of the copies is created here, users and plans create theirs
       - mkdir -p /data/objects/$${BACKUP_BUCKET} /data/meta && exec versitygw posix --sidecar /data/meta /data/objects
     environment:
       ROOT_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
@@ -29,6 +29,11 @@ services:
       retries: 20
 
   users:
+    depends_on:
+      storage:
+        condition: service_healthy
+
+  plans:
     depends_on:
       storage:
         condition: service_healthy
